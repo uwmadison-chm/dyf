@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
+<!--
+Ticks for minutes
+prep 5
+speech 5
+math 5
+
+scanner 4s picture
+2s break
+.5s face
+7.5s after
+
+EMA - both wins and losses
+The game
+you won
+starting point
+the next hour
+-->
 <style>
 html,
 body {
@@ -9,64 +26,105 @@ body {
   overflow: hidden;
 }
 #visarea {
+  z-index: 1;
   position: fixed;
   left: 0px;
   right: 0px;
   top: 0px;
   bottom: 0px;
 }
+svg text {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  font-family: sans-serif;
+}
+button {
+  padding: 4px;
+  border-radius: 6px;
+  background: #eee;
+  border: 1px solid #333;
+  font-size: 150%;
+}
+button:hover {
+  background: #ddd;
+}
+.controls {
+  z-index: 2;
+  position: fixed;
+}
+#response {
+  bottom: 5em;
+  right: 5em;
+}
+
 </style>
 <body>
-<div id="visarea"></div>
-<button onclick="modeNegativeFace();">Negative Face</button>
-<button onclick="modePositiveFace();">Positive Face</button>
-<button onclick="modeTSST();">TSST</button>
-<button onclick="modeEMA();">EMA</button>
+<div class="controls">
+<button onclick="switchMode('NegativeFace')">Negative Face</button>
+<button onclick="switchMode('PositiveFace')">Positive Face</button>
+<button onclick="switchMode('TSST')">TSST</button>
+<button onclick="switchMode('EMA')">EMA</button>
+</div>
+
+<div class="controls" id="response">
+<button onclick="reset()">I want to draw it again</button>
+<button onclick="done()">Looks good</button>
+</div>
+
+<div id="visarea">
+  <svg id="svg" />
+</div>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script>
 
-var mode = "TSST";
-curvals = [];
+var mode = "NegativeFace";
+var svg;
+var curvals = [];
+var x,
+    y,
+    margin,
+    width,
+    height,
+    gheight,
+    gwidth;
 
-var drawlinePlot = function(draw=true,curve1=null){
-    var vis = $("#visarea")
-    vis.empty();
-    
-    var margin = {top: 50, right: 40, bottom: 60, left: 75},
-        width = visarea.clientWidth,
-        height = visarea.clientHeight,
-        gheight = height - margin.top - margin.bottom,
-        gwidth = width - margin.left - margin.right;
+function done(){
+    switch (mode) {
+      case "NegativeFace":
+        mode = "PositiveFace";
+        break;
+      case "PositiveFace":
+        mode = "TSST";
+        break;
+      case "TSST":
+        mode = "EMA";
+        break;
+      default:
+        mode = "TSST";
+        break;
+    }
+    drawlinePlot(true);
+};
 
-    var x = d3.scaleLinear()
-        .domain([0, 1])
-        .range([0, gwidth])
-    
-    var y = d3.scaleLinear()
-        .domain([0, 1])
-        .range([gheight, 0])
-    
-    var xticklabs = ["Start","End"]
-    var yticklabs = ["Low","High"]
-    
+function reset(){
+    drawlinePlot(true);
+};
+
+function switchMode(m){
+    mode = m;
+    drawlinePlot(true);
+};
+
+function drawGraphAxes(x_label, xtick_labels, y_label, ytick_labels){
     var xAxis = d3.axisBottom(x)
-                .ticks(1)
-                .tickFormat(function(d,i){ return xticklabs[i] });
+                .ticks(xtick_labels.length - 1)
+                .tickFormat(function(d,i){ return xtick_labels[i] });
     var yAxis = d3.axisLeft(y)
-                .ticks(1)
-                .tickFormat(function(d,i){ return yticklabs[i] });
-    
-    var svg = d3.select("#visarea").append("svg")
-        .attr("width",width)
-        .attr("height",height)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    
-    svg.append("rect")
-        .attr("width",width)
-        .attr("height",height)
-        .attr("fill","white");
+                .ticks(ytick_labels.length - 1)
+                .tickFormat(function(d,i){ return ytick_labels[i] });
     
     svg.append("g")
         .attr("class", "x axis")
@@ -81,78 +139,233 @@ var drawlinePlot = function(draw=true,curve1=null){
     d3.selectAll(".tick")
         .attr("font-size",16);
 
-    if (mode == "TSST") {
-      svg.append("rect")
-          .attr("width",gwidth*0.1)
-          .attr("x", 1.0)
-          .attr("height",gheight)
-          .attr("fill","#bef");
-      svg.append("text")
-          .style("fill","#659")
-          .attr("text-anchor", "middle")
-          .attr("font-size",14)
-          .attr("x", gwidth * 0.05)
-          .attr("y", gheight * 0.7)
-          .text("Prep");
-
-      svg.append("rect")
-          .attr("width", gwidth*0.15)
-          .attr("x", gwidth*0.1)
-          .attr("height", gheight)
-          .attr("fill","#feb");
-      svg.append("text")
-          .style("fill","#659")
-          .attr("text-anchor", "middle")
-          .attr("font-size",14)
-          .attr("x", gwidth * 0.175)
-          .attr("y", gheight * 0.7)
-          .text("Speech");
-
-      svg.append("rect")
-          .attr("width",gwidth*0.1)
-          .attr("x", gwidth*0.25)
-          .attr("height",gheight)
-          .attr("fill","#fbb");
-      svg.append("text")
-          .style("fill","#966")
-          .attr("text-anchor", "middle")
-          .attr("font-size",14)
-          .attr("x", gwidth * 0.3)
-          .attr("y", gheight * 0.7)
-          .text("Math");
-
-      svg.append("rect")
-          .attr("width",gwidth*0.25)
-          .attr("x", gwidth*0.75)
-          .attr("height",gheight)
-          .attr("fill","#bbb");
-      svg.append("text")
-          .style("fill","#666")
-          .attr("text-anchor", "middle")
-          .attr("font-size",14)
-          .attr("x", gwidth * 0.88)
-          .attr("y", gheight * 0.7)
-          .text("Rating myself");
-    }
-    
     svg.append("text")
         .attr("class", "xlabel")
         .attr("text-anchor", "middle")
-        .attr("font-size",24)
+        .attr("font-size",20)
         .attr("x", gwidth/2)
-        .attr("y", gheight* 1.04)
-        .text("Time")
+        .attr("y", gheight + 30)
+        .text(x_label)
     
     svg.append("text")
         .attr("class", "ylabel")
         .attr("text-anchor", "middle")
-        .attr("font-size",24)
+        .attr("font-size",20)
         .attr("x", -(gheight)/2)
-        .attr("y", -gwidth * 0.01)
+        .attr("y", -margin.top + 30)
         .attr("transform", "rotate(-90)")
-        .text("Intensity");
+        .text(y_label);
+
+};
+
+var drawlinePlot = function(draw=true,curve1=null){
+    var response = $("#response")
+    var vis = $("#visarea")
+
+    margin = {top: 50, right: 40, bottom: 60, left: 75};
+    width = visarea.clientWidth;
+    height = visarea.clientHeight;
+    gheight = height - margin.top - margin.bottom;
+    gwidth = width - margin.left - margin.right;
+
+    svg = d3.select("#svg")
+    svg.selectAll("*").remove();
+
+    svg = svg
+        .attr("width",width)
+        .attr("height",height)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    x = d3.scaleLinear()
+        .domain([0, 1])
+        .range([0, gwidth])
+    
+    y = d3.scaleLinear()
+        .domain([0, 1])
+        .range([gheight, 0])
+
+    svg.append("rect")
+        .attr("width",width)
+        .attr("height",height)
+        .attr("fill","white");
+    
+    
+    drawGraphAxes("Time", ["Start","End"], "Intensity", ["Low","High"]);
+    
+    return;
+    response
+        .attr("left",gwidth/2)
+        .attr("top",gheight/2);
+
+    var textheight = gheight * 0.9;
+    switch (mode) {
+      case "NegativeFace":
+        svg.append("rect")
+            .attr("width",gwidth*0.2)
+            .attr("x", 1.0)
+            .attr("height",gheight)
+            .attr("fill","#eab");
+        svg.append("text")
+            .style("fill","#956")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.1)
+            .attr("y", textheight)
+            .text("Negative face shown");
+
+        svg.append("rect")
+            .attr("width", gwidth*0.5)
+            .attr("x", gwidth*0.2)
+            .attr("height", gheight)
+            .attr("fill","#feb");
+        svg.append("text")
+            .style("fill","#954")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.45)
+            .attr("y", textheight)
+            .text("???");
+            break;
+
+      case "PositiveFace":
+        svg.append("rect")
+            .attr("width",gwidth*0.2)
+            .attr("x", 1.0)
+            .attr("height",gheight)
+            .attr("fill","#aeb");
+        svg.append("text")
+            .style("fill","#596")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.1)
+            .attr("y", textheight)
+            .text("Positive face shown");
+
+        svg.append("rect")
+            .attr("width", gwidth*0.5)
+            .attr("x", gwidth*0.2)
+            .attr("height", gheight)
+            .attr("fill","#feb");
+        svg.append("text")
+            .style("fill","#954")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.45)
+            .attr("y", textheight)
+            .text("???");
+            break;
+
+      case "TSST":
+        svg.append("rect")
+            .attr("width",gwidth*0.1)
+            .attr("x", 1.0)
+            .attr("height",gheight)
+            .attr("fill","#bef");
+        svg.append("text")
+            .style("fill","#659")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.05)
+            .attr("y", textheight)
+            .text("Prep");
+
+        svg.append("rect")
+            .attr("width", gwidth*0.15)
+            .attr("x", gwidth*0.1)
+            .attr("height", gheight)
+            .attr("fill","#feb");
+        svg.append("text")
+            .style("fill","#659")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.175)
+            .attr("y", textheight)
+            .text("Speech");
+
+        svg.append("rect")
+            .attr("width",gwidth*0.1)
+            .attr("x", gwidth*0.25)
+            .attr("height",gheight)
+            .attr("fill","#fbb");
+        svg.append("text")
+            .style("fill","#966")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.3)
+            .attr("y", textheight)
+            .text("Math");
+
+        svg.append("text")
+            .style("fill","#999")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.5)
+            .attr("y", textheight)
+            .text("Sitting down");
+
+        svg.append("rect")
+            .attr("width",gwidth*0.35)
+            .attr("x", gwidth*0.65)
+            .attr("height",gheight)
+            .attr("fill","#bfb");
+        svg.append("text")
+            .style("fill","#666")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.82)
+            .attr("y", textheight)
+            .text("Rating myself");
+
+        svg.append("rect")
+            .attr("width",gwidth*0.1)
+            .attr("x", gwidth*0.65)
+            .attr("height",gheight)
+            .attr("fill","#bef6");
+        svg.append("rect")
+            .attr("width", gwidth*0.15)
+            .attr("x", gwidth*0.75)
+            .attr("height", gheight)
+            .attr("fill","#feb6");
+        svg.append("rect")
+            .attr("width",gwidth*0.1)
+            .attr("x", gwidth*0.9)
+            .attr("height",gheight)
+            .attr("fill","#fbb6");
+        break;
+
+      case "EMA":
+        svg.append("rect")
+            .attr("width",gwidth*0.2)
+            .attr("x", 1.0)
+            .attr("height",gheight)
+            .attr("fill","#bef");
+        svg.append("text")
+            .style("fill","#659")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.1)
+            .attr("y", textheight)
+            .text("Playing game");
+
+        svg.append("rect")
+            .attr("width", gwidth*0.5)
+            .attr("x", gwidth*0.2)
+            .attr("height", gheight)
+            .attr("fill","#feb");
+        svg.append("text")
+            .style("fill","#954")
+            .attr("text-anchor", "middle")
+            .attr("font-size",20)
+            .attr("x", gwidth * 0.45)
+            .attr("y", textheight)
+            .text("Being surveyed after game");
+
+    }
+    
     
     if(draw){
+        response.hide();
         
         var line = d3.line()
             .curve(d3.curveBasis);
@@ -163,7 +376,7 @@ var drawlinePlot = function(draw=true,curve1=null){
                 .subject(function() { var p = [d3.event.x, d3.event.y]; return [p, p]; })
                 .on("start", dragstarted));
         function dragstarted() {
-          var valpos = d3.event.x>0 & d3.event.x<(width-margin.left-margin.right) & d3.event.y>0 & d3.event.y<(height-margin.bottom-margin.top);
+          var valpos = d3.event.x>0 & d3.event.x<gwidth & d3.event.y>0 & d3.event.y<gheight;
           if(valpos & draw){
               var d = d3.event.subject,
                   active = svg.append("path").datum(d)
@@ -195,7 +408,7 @@ var drawlinePlot = function(draw=true,curve1=null){
                 if (curvals.length>2){
                     draw = false;
                     // TODO: Here is where we prompt the user to say "DONE"
-                    curvals = normDrawing(curvals,height-margin.top-margin.bottom);
+                    curvals = normDrawing(curvals,gwidth,gheight);
                     drawlinePlot(false,curvals);
                 } else {
                     curvals = [];
@@ -205,6 +418,7 @@ var drawlinePlot = function(draw=true,curve1=null){
           }
         }
     } else {
+        response.show();
         
         var line = d3.line()
                 .x(function(d) {return x(d["x"]); })
@@ -233,13 +447,14 @@ var drawlinePlot = function(draw=true,curve1=null){
     });
 }
 
-var normDrawing = function(drawn,ymax){
+var normDrawing = function(drawn,xmax,ymax){
     cvxMax = d3.max(drawn, function(d) {return d.x});
     cvxMin = d3.min(drawn, function(d) {return d.x});
     cvyMax = d3.max(drawn, function(d) {return d.y});
     cvyMin = d3.min(drawn, function(d) {return d.y});
+
     for (var i = 0; i < drawn.length; i ++){
-        drawn[i]["x"] = (drawn[i]["x"]-cvxMin)/(cvxMax-cvxMin);
+        drawn[i]["x"] = (drawn[i]["x"])/xmax;
         drawn[i]["y"] = 1-(drawn[i]["y"]/ymax);
     }
     

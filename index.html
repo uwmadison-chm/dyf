@@ -1,23 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
-<!--
-Ticks for minutes
-prep 5
-speech 5
-math 5
-
-scanner 4s picture
-2s break
-.5s face
-7.5s after
-
-EMA - both wins and losses
-The game
-you won
-starting point
-the next hour
--->
 <style>
 html,
 body {
@@ -144,7 +127,7 @@ function drawGraphAxes(x_label, xtick_labels, y_label, ytick_labels){
         .attr("text-anchor", "middle")
         .attr("font-size",20)
         .attr("x", gwidth/2)
-        .attr("y", gheight + 30)
+        .attr("y", gheight + 50)
         .text(x_label)
     
     svg.append("text")
@@ -155,14 +138,82 @@ function drawGraphAxes(x_label, xtick_labels, y_label, ytick_labels){
         .attr("y", -margin.top + 30)
         .attr("transform", "rotate(-90)")
         .text(y_label);
+}
 
-};
+function drawGraphSection(label, tick_label, color, fill, x, width){
+    var textheight = gheight * 0.9;
+    svg.append("rect")
+        .attr("width",gwidth*width)
+        .attr("x", gwidth*x)
+        .attr("height",gheight)
+        .attr("fill",fill);
+    svg.append("text")
+        .style("fill",color)
+        .attr("text-anchor", "middle")
+        .attr("font-size",20)
+        .attr("x", gwidth * (x + width/2))
+        .attr("y", textheight)
+        .text(label);
+    if (tick_label) {
+        svg.append("text")
+            .style("fill","#956")
+            .attr("text-anchor", "middle")
+            .attr("font-size",16)
+            .attr("x", gwidth * x)
+            .attr("y", gheight+16)
+            .text(tick_label);
+    }
+}
+
+function drawGraphSections(sections){
+  sections.forEach(function(section){
+    drawGraphSection(...section);
+  });
+}
+
+function drawSectionsForMode(){
+    switch (mode) {
+      case "NegativeFace":
+        drawGraphSections([
+              ["Negative picture", "", "#956", "#f563", 0.0, 0.28],
+              ["", "4s", "#999", "#fff", 0.28, 0.14],
+              ["Face", "6s", "#569", "#56f3", 0.42, 0.035],
+            ]);
+            break;
+
+      case "PositiveFace":
+        drawGraphSections([
+              ["Positive picture", "", "#695", "#6f53", 0.0, 0.28],
+              ["", "4s", "#999", "#fff", 0.28, 0.14],
+              ["Face", "6s", "#569", "#56f3", 0.42, 0.035],
+            ]);
+            break;
+
+      case "TSST":
+        drawGraphSections([
+              ["Prep", "", "#695", "#6f53", 0.0, 0.1],
+              ["Speech", "5min", "#956", "#f563", 0.1, 0.1],
+              ["Math", "10min", "#569", "#56f3", 0.2, 0.1],
+              ["Sitting down", "15min", "#666", "#fff", 0.3, 0.4],
+              ["Rating yourself", "1hr", "#666", "#6663", 0.7, 0.3],
+            ]);
+            break;
+
+      case "EMA":
+        drawGraphSections([
+              ["Playing game", "", "#569", "#56f3", 0.0, 0.1],
+              ["You won", "???", "#596", "#5f63", 0.15, 0.1],
+              ["Being surveyed after game", "???", "#666", "#aaa3", 0.3, 0.4],
+            ]);
+            break;
+    }
+}
 
 var drawlinePlot = function(draw=true,curve1=null){
     var response = $("#response")
     var vis = $("#visarea")
 
-    margin = {top: 50, right: 40, bottom: 60, left: 75};
+    margin = {top: 50, right: 40, bottom: 80, left: 75};
     width = visarea.clientWidth;
     height = visarea.clientHeight;
     gheight = height - margin.top - margin.bottom;
@@ -190,178 +241,15 @@ var drawlinePlot = function(draw=true,curve1=null){
         .attr("height",height)
         .attr("fill","white");
     
-    
-    drawGraphAxes("Time", ["Start","End"], "Intensity", ["Low","High"]);
-    
-    return;
     response
         .attr("left",gwidth/2)
         .attr("top",gheight/2);
 
     var textheight = gheight * 0.9;
-    switch (mode) {
-      case "NegativeFace":
-        svg.append("rect")
-            .attr("width",gwidth*0.2)
-            .attr("x", 1.0)
-            .attr("height",gheight)
-            .attr("fill","#eab");
-        svg.append("text")
-            .style("fill","#956")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.1)
-            .attr("y", textheight)
-            .text("Negative face shown");
 
-        svg.append("rect")
-            .attr("width", gwidth*0.5)
-            .attr("x", gwidth*0.2)
-            .attr("height", gheight)
-            .attr("fill","#feb");
-        svg.append("text")
-            .style("fill","#954")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.45)
-            .attr("y", textheight)
-            .text("???");
-            break;
-
-      case "PositiveFace":
-        svg.append("rect")
-            .attr("width",gwidth*0.2)
-            .attr("x", 1.0)
-            .attr("height",gheight)
-            .attr("fill","#aeb");
-        svg.append("text")
-            .style("fill","#596")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.1)
-            .attr("y", textheight)
-            .text("Positive face shown");
-
-        svg.append("rect")
-            .attr("width", gwidth*0.5)
-            .attr("x", gwidth*0.2)
-            .attr("height", gheight)
-            .attr("fill","#feb");
-        svg.append("text")
-            .style("fill","#954")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.45)
-            .attr("y", textheight)
-            .text("???");
-            break;
-
-      case "TSST":
-        svg.append("rect")
-            .attr("width",gwidth*0.1)
-            .attr("x", 1.0)
-            .attr("height",gheight)
-            .attr("fill","#bef");
-        svg.append("text")
-            .style("fill","#659")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.05)
-            .attr("y", textheight)
-            .text("Prep");
-
-        svg.append("rect")
-            .attr("width", gwidth*0.15)
-            .attr("x", gwidth*0.1)
-            .attr("height", gheight)
-            .attr("fill","#feb");
-        svg.append("text")
-            .style("fill","#659")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.175)
-            .attr("y", textheight)
-            .text("Speech");
-
-        svg.append("rect")
-            .attr("width",gwidth*0.1)
-            .attr("x", gwidth*0.25)
-            .attr("height",gheight)
-            .attr("fill","#fbb");
-        svg.append("text")
-            .style("fill","#966")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.3)
-            .attr("y", textheight)
-            .text("Math");
-
-        svg.append("text")
-            .style("fill","#999")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.5)
-            .attr("y", textheight)
-            .text("Sitting down");
-
-        svg.append("rect")
-            .attr("width",gwidth*0.35)
-            .attr("x", gwidth*0.65)
-            .attr("height",gheight)
-            .attr("fill","#bfb");
-        svg.append("text")
-            .style("fill","#666")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.82)
-            .attr("y", textheight)
-            .text("Rating myself");
-
-        svg.append("rect")
-            .attr("width",gwidth*0.1)
-            .attr("x", gwidth*0.65)
-            .attr("height",gheight)
-            .attr("fill","#bef6");
-        svg.append("rect")
-            .attr("width", gwidth*0.15)
-            .attr("x", gwidth*0.75)
-            .attr("height", gheight)
-            .attr("fill","#feb6");
-        svg.append("rect")
-            .attr("width",gwidth*0.1)
-            .attr("x", gwidth*0.9)
-            .attr("height",gheight)
-            .attr("fill","#fbb6");
-        break;
-
-      case "EMA":
-        svg.append("rect")
-            .attr("width",gwidth*0.2)
-            .attr("x", 1.0)
-            .attr("height",gheight)
-            .attr("fill","#bef");
-        svg.append("text")
-            .style("fill","#659")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.1)
-            .attr("y", textheight)
-            .text("Playing game");
-
-        svg.append("rect")
-            .attr("width", gwidth*0.5)
-            .attr("x", gwidth*0.2)
-            .attr("height", gheight)
-            .attr("fill","#feb");
-        svg.append("text")
-            .style("fill","#954")
-            .attr("text-anchor", "middle")
-            .attr("font-size",20)
-            .attr("x", gwidth * 0.45)
-            .attr("y", textheight)
-            .text("Being surveyed after game");
-
-    }
+    drawSectionsForMode();
+    drawGraphAxes("Time", ["Start","End"], "Intensity", ["Low","High"]);
+    
     
     
     if(draw){

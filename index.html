@@ -7,6 +7,7 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
+  font-family: sans-serif;
 }
 #visarea {
   z-index: 1;
@@ -21,34 +22,37 @@ svg text {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  font-family: sans-serif;
 }
 button {
-  padding: 4px;
-  border-radius: 6px;
+  padding: 1em;
+  border-radius: 1em;
   background: #eee;
-  border: 1px solid #333;
-  font-size: 150%;
+  border: 2px solid #666;
 }
 button:hover {
   background: #ddd;
+  border: 2px solid #000;
 }
 .controls {
   z-index: 2;
   position: fixed;
-}
-#response {
-  bottom: 5em;
-  right: 5em;
+  font-size: 2em;
 }
 
+.controls button, .controls input {
+  font-size: 100%;
+}
+
+#response, #ready, #ppt {
+  bottom: 1em;
+  right: 1em;
+  display: none;
+}
 </style>
 <body>
-<div class="controls">
-<button onclick="switchMode('NegativeFace')">Negative Face</button>
-<button onclick="switchMode('PositiveFace')">Positive Face</button>
-<button onclick="switchMode('TSST')">TSST</button>
-<button onclick="switchMode('EMA')">EMA</button>
+<div class="controls" id="ppt">
+Participant ID: <input id="ppt_input" size="30"/>
+<button onclick="done()">Done</button>
 </div>
 
 <div class="controls" id="response">
@@ -56,316 +60,15 @@ button:hover {
 <button onclick="done()">Looks good</button>
 </div>
 
+<div class="controls" id="ready">
+<button onclick="done()">I'm ready</button>
+</div>
+
 <div id="visarea">
   <svg id="svg" />
 </div>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://d3js.org/d3.v5.min.js"></script>
-<script>
-
-var mode = "NegativeFace";
-var svg;
-var curvals = [];
-var x,
-    y,
-    margin,
-    width,
-    height,
-    gheight,
-    gwidth;
-
-function done(){
-    switch (mode) {
-      case "NegativeFace":
-        mode = "PositiveFace";
-        break;
-      case "PositiveFace":
-        mode = "TSST";
-        break;
-      case "TSST":
-        mode = "EMA";
-        break;
-      default:
-        mode = "TSST";
-        break;
-    }
-    drawlinePlot(true);
-};
-
-function reset(){
-    drawlinePlot(true);
-};
-
-function switchMode(m){
-    mode = m;
-    drawlinePlot(true);
-};
-
-function drawGraphAxes(x_label, xtick_labels, y_label, ytick_labels){
-    var xAxis = d3.axisBottom(x)
-                .ticks(xtick_labels.length - 1)
-                .tickFormat(function(d,i){ return xtick_labels[i] });
-    var yAxis = d3.axisLeft(y)
-                .ticks(ytick_labels.length - 1)
-                .tickFormat(function(d,i){ return ytick_labels[i] });
-    
-    svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + gheight + ")")
-        .call(xAxis)
-    
-    svg.append("g")
-        .attr("class", "y axis")
-        .attr("transform", "translate(0,0)")
-        .call(yAxis)
-    
-    d3.selectAll(".tick")
-        .attr("font-size",16);
-
-    svg.append("text")
-        .attr("class", "xlabel")
-        .attr("text-anchor", "middle")
-        .attr("font-size",20)
-        .attr("x", gwidth/2)
-        .attr("y", gheight + 50)
-        .text(x_label)
-    
-    svg.append("text")
-        .attr("class", "ylabel")
-        .attr("text-anchor", "middle")
-        .attr("font-size",20)
-        .attr("x", -(gheight)/2)
-        .attr("y", -margin.top + 30)
-        .attr("transform", "rotate(-90)")
-        .text(y_label);
-}
-
-function drawGraphSection(label, tick_label, color, fill, x, width){
-    var textheight = gheight * 0.9;
-    svg.append("rect")
-        .attr("width",gwidth*width)
-        .attr("x", gwidth*x)
-        .attr("height",gheight)
-        .attr("fill",fill);
-    svg.append("text")
-        .style("fill",color)
-        .attr("text-anchor", "middle")
-        .attr("font-size",20)
-        .attr("x", gwidth * (x + width/2))
-        .attr("y", textheight)
-        .text(label);
-    if (tick_label) {
-        svg.append("text")
-            .style("fill","#956")
-            .attr("text-anchor", "middle")
-            .attr("font-size",16)
-            .attr("x", gwidth * x)
-            .attr("y", gheight+16)
-            .text(tick_label);
-    }
-}
-
-function drawGraphSections(sections){
-  sections.forEach(function(section){
-    drawGraphSection(...section);
-  });
-}
-
-function drawSectionsForMode(){
-    switch (mode) {
-      case "NegativeFace":
-        drawGraphSections([
-              ["Negative picture", "", "#956", "#f563", 0.0, 0.28],
-              ["", "4s", "#999", "#fff", 0.28, 0.14],
-              ["Face", "6s", "#569", "#56f3", 0.42, 0.035],
-            ]);
-            break;
-
-      case "PositiveFace":
-        drawGraphSections([
-              ["Positive picture", "", "#695", "#6f53", 0.0, 0.28],
-              ["", "4s", "#999", "#fff", 0.28, 0.14],
-              ["Face", "6s", "#569", "#56f3", 0.42, 0.035],
-            ]);
-            break;
-
-      case "TSST":
-        drawGraphSections([
-              ["Prep", "", "#695", "#6f53", 0.0, 0.1],
-              ["Speech", "5min", "#956", "#f563", 0.1, 0.1],
-              ["Math", "10min", "#569", "#56f3", 0.2, 0.1],
-              ["Sitting down", "15min", "#666", "#fff", 0.3, 0.4],
-              ["Rating yourself", "1hr", "#666", "#6663", 0.7, 0.3],
-            ]);
-            break;
-
-      case "EMA":
-        drawGraphSections([
-              ["Playing game", "", "#569", "#56f3", 0.0, 0.1],
-              ["You won", "???", "#596", "#5f63", 0.15, 0.1],
-              ["Being surveyed after game", "???", "#666", "#aaa3", 0.3, 0.4],
-            ]);
-            break;
-    }
-}
-
-var drawlinePlot = function(draw=true,curve1=null){
-    var response = $("#response")
-    var vis = $("#visarea")
-
-    margin = {top: 50, right: 40, bottom: 80, left: 75};
-    width = visarea.clientWidth;
-    height = visarea.clientHeight;
-    gheight = height - margin.top - margin.bottom;
-    gwidth = width - margin.left - margin.right;
-
-    svg = d3.select("#svg")
-    svg.selectAll("*").remove();
-
-    svg = svg
-        .attr("width",width)
-        .attr("height",height)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    x = d3.scaleLinear()
-        .domain([0, 1])
-        .range([0, gwidth])
-    
-    y = d3.scaleLinear()
-        .domain([0, 1])
-        .range([gheight, 0])
-
-    svg.append("rect")
-        .attr("width",width)
-        .attr("height",height)
-        .attr("fill","white");
-    
-    response
-        .attr("left",gwidth/2)
-        .attr("top",gheight/2);
-
-    var textheight = gheight * 0.9;
-
-    drawSectionsForMode();
-    drawGraphAxes("Time", ["Start","End"], "Intensity", ["Low","High"]);
-    
-    
-    
-    if(draw){
-        response.hide();
-        
-        var line = d3.line()
-            .curve(d3.curveBasis);
-        
-        var xmin = 0;
-        svg.call(d3.drag()
-                .container(function() { return this; })
-                .subject(function() { var p = [d3.event.x, d3.event.y]; return [p, p]; })
-                .on("start", dragstarted));
-        function dragstarted() {
-          var valpos = d3.event.x>0 & d3.event.x<gwidth & d3.event.y>0 & d3.event.y<gheight;
-          if(valpos & draw){
-              var d = d3.event.subject,
-                  active = svg.append("path").datum(d)
-                    .attr("fill","none")
-                    .attr("stroke","#0066ff")
-                    .attr("stroke-width","5px")
-                    .attr("stroke-linejoin","round")
-                    .attr("stroke-linecap","round"),
-                  x0 = d3.event.x,
-                  y0 = d3.event.y;
-              curvals.push({"x":x0,"y":y0});
-
-              d3.event.on("drag", function() {
-                var x1 = d3.event.x,
-                    y1 = d3.event.y,
-                    dx = x1 - x0,
-                    dy = y1 - y0;
-                var valpos = x1>xmin & x1<(width-margin.left-margin.right) & y1>0 & y1<(height-margin.bottom-margin.top);
-                if (valpos){
-                    curvals.push({"x":x1,"y":y1});
-                    xmin = x1;
-                    if (dx * dx + dy * dy > 10) d.push([x0 = x1, y0 = y1]);
-                    else d[d.length - 1] = [x1, y1];
-                    active.attr("d", line);
-                }
-              });
-              
-              d3.event.on("end", function(){
-                if (curvals.length>2){
-                    draw = false;
-                    // TODO: Here is where we prompt the user to say "DONE"
-                    curvals = normDrawing(curvals,gwidth,gheight);
-                    drawlinePlot(false,curvals);
-                } else {
-                    curvals = [];
-                    drawlinePlot();
-                }
-              });
-          }
-        }
-    } else {
-        response.show();
-        
-        var line = d3.line()
-                .x(function(d) {return x(d["x"]); })
-                .y(function(d) {return y(d["y"]); })
-                .curve(d3.curveBasis);
-        
-        if (curve1 != null){
-
-            svg.append("path").datum(curve1)
-                .attr("fill","none")
-                .attr("stroke","#0066aa")
-                .attr("stroke-width","7px")
-                .attr("stroke-linejoin","round")
-                .attr("stroke-linecap","round")
-                .attr('d',line);
-        }
-        
-    }
-
-    svg.on("click", function() {
-        if (!draw) {
-            draw = true;
-            curvals = [];
-            drawlinePlot();
-        }
-    });
-}
-
-var normDrawing = function(drawn,xmax,ymax){
-    cvxMax = d3.max(drawn, function(d) {return d.x});
-    cvxMin = d3.min(drawn, function(d) {return d.x});
-    cvyMax = d3.max(drawn, function(d) {return d.y});
-    cvyMin = d3.min(drawn, function(d) {return d.y});
-
-    for (var i = 0; i < drawn.length; i ++){
-        drawn[i]["x"] = (drawn[i]["x"])/xmax;
-        drawn[i]["y"] = 1-(drawn[i]["y"]/ymax);
-    }
-    
-    var idrawn = [];
-    for (var i = 0; i < (drawn.length-1); i ++){
-        var fx = d3.interpolateNumber(drawn[i]["x"],drawn[i+1]["x"])
-        var fy = d3.interpolateNumber(drawn[i]["y"],drawn[i+1]["y"])
-        for (var j=0; j<100; j ++){
-            idrawn.push({"x":fx(j/100),"y":fy(j/100)});
-        }
-    }
-
-    return idrawn;
-}
-
-function redraw(){
-    drawlinePlot();
-}
-
-redraw();
-
-window.addEventListener("resize", redraw);
-
-</script>
+<script src="index.js"></script>
 </body>
 </html>

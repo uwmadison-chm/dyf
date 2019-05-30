@@ -268,7 +268,7 @@ function drawTitleText(label) {
         .attr("text-anchor", "middle")
         .attr("font-size",50)
         .attr("x", gwidth/2)
-        .attr("y", gheight/2)
+        .attr("y", gheight*.4)
     for (let x of things) {
         text.append("tspan")
             .attr("dy", 50)

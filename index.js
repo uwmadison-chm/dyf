@@ -16,9 +16,10 @@ var x,
 var xmin = 0;
 var line = d3.line().curve(d3.curveBasis);
 
-var ready = $("#ready");
+var button_done = $("#button_done");
 var response = $("#response");
 var ppt = $("#ppt");
+var text = $(".text");
 
 var ppt_id = "";
 
@@ -30,10 +31,24 @@ function done(){
     }
 
     if (mode == "PPT") {
-        mode = "Intro";
+        mode = "Intro1";
         ppt_id = $("#ppt_input").val()
         draw();
         return;
+    }
+
+    // Skip the graph drawing for the first few thingies
+    switch (mode) {
+      case "Intro1":
+        mode = "Intro2";
+        draw();
+        return;
+        break;
+      case "Intro2":
+        mode = "Intro3";
+        draw();
+        return;
+        break;
     }
 
     if (intro) {
@@ -43,7 +58,13 @@ function done(){
         return;
     }
     switch (mode) {
-      case "Intro":
+      case "Intro1":
+        mode = "Intro2";
+        break;
+      case "Intro2":
+        mode = "Intro3";
+        break;
+      case "Intro3":
         mode = "NegativeFace";
         break;
       case "NegativeFace":
@@ -63,7 +84,7 @@ function done(){
         // TODO: Post data
         break;
       default:
-        mode = "Intro";
+        mode = "Intro1";
         break;
     }
     intro = true;
@@ -81,26 +102,34 @@ function draw(){
     if (intro) {
         drawing = false;
         response.hide();
+        text.hide();
         ppt.hide();
         switch (mode) {
           case "PPT":
-            ready.hide();
+            button_done.hide();
             ppt.show();
             break;
           case "End":
-            ready.hide();
+            button_done.hide();
             break;
           default:
-            ready.show();
+            button_done.show();
             break;
         }
-        drawTitle();
+        drawTitle(mode);
     } else {
-        ready.hide();
+        text.hide();
+        button_done.hide();
         if (drawing) {
             response.hide();
         }
         drawLinePlot();
+        // Some intro plots have text
+        switch (mode) {
+          case "Intro3":
+            drawTitleOver("Intro3Graph");
+            break;
+        }
     }
 }
 
@@ -228,57 +257,22 @@ function drawSectionsForMode(){
     }
 }
 
-function drawTitle() {
+function drawTitle(id) {
     svg.selectAll("*").remove();
-    switch (mode) {
-      case "Intro":
-          drawTitleText("Now we're going to ask you to draw your feelings.\nI don't know what this introductory text should look like!\n...\nBut here's an example of how you might draw\nthe intensity of getting hit by a hammer.");
-          break;
-
-      case "NegativeFace":
-          drawTitleText("Think back to when you were\nin the scanner and\nsaw a bad picture.");
-          break;
-
-      case "PositiveFace":
-          drawTitleText("Think back to when you were\nin the scanner and\nsaw a good picture.");
-          break;
-
-      case "TSST":
-          drawTitleText("Think back to when you were\nin the room with the scientists in lab coats.");
-          break;
-
-      case "EMALose":
-          drawTitleText("Think back to when you\nlost $5 in the number-guessing game.");
-          break;
-
-      case "EMAWin":
-          drawTitleText("Think back to when you\nwon $10 in the number-guessing game.");
-          break;
-
-      case "End":
-          drawTitleText("Thanks!\n...\nYou're done and can hand this\nback to the experimenter.");
-          break;
-    }
+    $('#' + id).show();
 }
 
-function drawTitleText(label) {
-    things = label.split(/\r?\n/);
-    var text = svg.append("text")
-        .style("fill","#000")
-        .attr("text-anchor", "middle")
-        .attr("font-size",50)
-        .attr("x", gwidth/2)
-        .attr("y", gheight*.4)
-    for (let x of things) {
-        text.append("tspan")
-            .attr("dy", 50)
-            .attr("x", gwidth/2)
-            .text(x);
-    }
+function drawTitleOver(id) {
+    $('#' + id).show();
 }
 
 function drawLinePlot() {
     svg.selectAll("*").remove();
+
+    svg.append("rect")
+        .attr("width",width)
+        .attr("height",height)
+        .attr("fill","#fff0");
 
     x = d3.scaleLinear()
         .domain([0, 1])
@@ -287,11 +281,6 @@ function drawLinePlot() {
     y = d3.scaleLinear()
         .domain([0, 1])
         .range([gheight, 0]);
-
-    svg.append("rect")
-        .attr("width",width)
-        .attr("height",height)
-        .attr("fill","white");
     
     var textheight = gheight * 0.9;
 

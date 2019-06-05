@@ -36,7 +36,7 @@ button:hover {
   border: 2px solid #000;
 }
 .controls {
-  z-index: 2;
+  z-index: 3;
   position: fixed;
   font-size: 2em;
 }
@@ -45,10 +45,30 @@ button:hover {
   font-size: 100%;
 }
 
-#response, #ready, #ppt {
+#response, #button_done, #ppt {
   bottom: 1em;
   right: 1em;
   display: none;
+}
+
+.text {
+  display: none;
+  text-align: center;
+  font-size: 3em;
+  padding: 2em;
+  z-index: -1;
+  position: fixed;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+}
+.text.title {
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  padding-top: 0.5em;
+  bottom: none;
 }
 </style>
 <head>
@@ -63,13 +83,66 @@ Participant ID: <input id="ppt_input" size="30"/>
 <button onclick="done()">Looks good</button>
 </div>
 
-<div class="controls" id="ready">
-<button onclick="done()">I'm ready</button>
+<div class="controls" id="button_done">
+<button onclick="done()">Next</button>
 </div>
 
 <div id="visarea">
   <svg id="svg" />
 </div>
+
+<div class="text" id="Intro1">
+  <p>During this study we measured your emotional responses with our sensors, 
+  MRI, and through your self-report.</p>
+  
+  <p>Some of the time scales were fast (over 
+  milliseconds) and some were much slower (over minutes and hours).</p>
+
+</div>
+
+<div class="text" id="Intro2">
+  <p>Now we would like to learn what your intuitions are about the time course 
+  of your emotional responses.</p>
+  
+  <p>For each of the paradigms, we will have you 
+  draw a time course of your emotional response to reflect the shape of the 
+  response and intensity levels over time.</p>
+</div>
+
+<div class="text" id="Intro3">
+  <p>First, lets go through some examples of different time courses of 
+  responses when looking at negative pictures.</p>
+</div>
+
+<div class="text title" id="Intro3Graph">
+  <p>Here is one person's negative emotional response over the negative picture trials.</p>
+</div>
+
+<div class="text" id="NegativeFace">
+  <p>Think back to when you were in the scanner and saw a bad picture.</p>
+</div>
+
+<div class="text" id="PositiveFace">
+  <p>Think back to when you were in the scanner and saw a good picture.</p>
+</div>
+
+<div class="text" id="TSST">
+  <p>Think back to when you were in the room with the scientists in lab coats.</p>
+</div>
+
+<div class="text" id="EMALose">
+  <p>Think back to when you lost $5 in the number-guessing game.</p>
+</div>
+
+<div class="text" id="EMAWin">
+  <p>Think back to when you won $10 in the number-guessing game.</p>
+</div>
+
+<div class="text" id="End">
+  <p>Thanks! ... You're done and can hand this back to the experimenter.</p>
+</div>
+
+
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="index.js"></script>

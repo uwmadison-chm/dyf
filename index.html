@@ -46,7 +46,7 @@ button:hover {
 }
 
 #response, #button_done, #ppt {
-  bottom: 1em;
+  bottom: 3em;
   right: 1em;
   display: none;
 }
@@ -54,8 +54,8 @@ button:hover {
 .text {
   display: none;
   text-align: center;
-  font-size: 3em;
-  padding: 2em;
+  font-size: 30pt;
+  padding: 1em;
   z-index: -1;
   position: fixed;
   left: 0px;
@@ -64,10 +64,13 @@ button:hover {
   bottom: 0px;
 }
 .text.title {
+  font-size: 20pt;
   left: 0px;
   right: 0px;
   top: 0px;
   padding-top: 0.5em;
+  padding-left: 5em;
+  padding-right: 5em;
   bottom: none;
 }
 </style>
@@ -79,8 +82,9 @@ Participant ID: <input id="ppt_input" size="30"/>
 </div>
 
 <div class="controls" id="response">
+<button onclick="print()">TEMP: Print HTML</button>
 <button onclick="reset()">I want to draw it again</button>
-<button onclick="done()">Looks good</button>
+<button onclick="done()">Next</button>
 </div>
 
 <div class="controls" id="button_done">
@@ -118,6 +122,27 @@ Participant ID: <input id="ppt_input" size="30"/>
   <p>Here is one person's negative emotional response over the negative picture trials.</p>
 </div>
 
+<div class="text title" id="Intro4Graph">
+  <p>However, some people respond very differently.</p>
+</div>
+
+<div class="text title" id="Intro5Graph">
+  <p>Similarly, here is an example of someone's emotional response to positive 
+  (pleasant) pictures. They may be similar in shape and intensity to the 
+  response to negative (unpleasant) pictures or very different depending on 
+  the individual.</p>
+</div>
+
+<div class="text" id="Practice">
+  <p>Now we will have you practice drawing your time courses.</p>
+</div>
+
+<div class="text" id="PracticeEnd">
+  <p>Do you have any questions?</p>
+  
+  <p>If not, then please make your time courses to be saved.</p>
+</div>
+
 <div class="text" id="NegativeFace">
   <p>Think back to when you were in the scanner and saw a bad picture.</p>
 </div>
@@ -126,20 +151,42 @@ Participant ID: <input id="ppt_input" size="30"/>
   <p>Think back to when you were in the scanner and saw a good picture.</p>
 </div>
 
-<div class="text" id="TSST">
-  <p>Think back to when you were in the room with the scientists in lab coats.</p>
+
+<div class="text" id="PreEMA1">
+  <p>Now we will have you draw time courses for your experience playing the texting win/lose game. Note that here the time course is over minutes, not seconds.</p>
 </div>
 
-<div class="text" id="EMALose">
-  <p>Think back to when you lost $5 in the number-guessing game.</p>
+<div class="text title" id="PreEMA1Graph">
+  First practice drawing your time course for the times you won the game.
+</div>
+
+<div class="text title" id="PreEMA2Graph">
+  Now practice drawing your time course for the times you lost the game.
+</div>
+
+<div class="text" id="PreEMA3">
+  <p>Do you have any questions?</p>
+  
+  <p>If not, then please make your time courses to be saved.</p>
 </div>
 
 <div class="text" id="EMAWin">
   <p>Think back to when you won $10 in the number-guessing game.</p>
 </div>
 
+<div class="text" id="EMALose">
+  <p>Think back to when you lost $5 in the number-guessing game.</p>
+</div>
+
+
+<div class="text" id="TSST">
+  <p>Now you will draw the time course for your experience in the room with the scientists in lab coats.</p>
+</div>
+
+
 <div class="text" id="End">
-  <p>Thanks! ... You're done and can hand this back to the experimenter.</p>
+  <p>Thanks!</p>
+  <p>You're done and can hand this back to the experimenter.</p>
 </div>
 
 

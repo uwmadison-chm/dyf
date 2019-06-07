@@ -1,9 +1,11 @@
 var mode = "PPT";
 var container;
 var svg;
-var drawing = false;
+var drawing_mode = "off";
 var intro = true;
-var curvals = [];
+var curvals = [],
+    autovals = [],
+    autodrawTimeout = undefined;
 var x,
     y,
     margin,
@@ -25,38 +27,7 @@ var ppt_id = "";
 
 var vis = $("#visarea");
 
-function done(){
-    if (mode == "End") {
-        return;
-    }
-
-    if (mode == "PPT") {
-        mode = "Intro1";
-        ppt_id = $("#ppt_input").val()
-        draw();
-        return;
-    }
-
-    // Skip the graph drawing for the first few thingies
-    switch (mode) {
-      case "Intro1":
-        mode = "Intro2";
-        draw();
-        return;
-        break;
-      case "Intro2":
-        mode = "Intro3";
-        draw();
-        return;
-        break;
-    }
-
-    if (intro) {
-        intro = false;
-        drawing = true;
-        draw();
-        return;
-    }
+function rotateMode() {
     switch (mode) {
       case "Intro1":
         mode = "Intro2";
@@ -65,21 +36,42 @@ function done(){
         mode = "Intro3";
         break;
       case "Intro3":
+        mode = "Intro4";
+        break;
+      case "Intro4":
+        mode = "Intro5";
+        break;
+      case "Intro5":
+        mode = "Practice";
+        break;
+      case "Practice":
+        mode = "PracticeEnd";
+        break;
+      case "PracticeEnd":
         mode = "NegativeFace";
         break;
       case "NegativeFace":
         mode = "PositiveFace";
         break;
       case "PositiveFace":
-        mode = "TSST";
+        mode = "PreEMA1";
         break;
-      case "TSST":
-        mode = "EMALose";
+      case "PreEMA1":
+        mode = "PreEMA2";
         break;
-      case "EMALose":
+      case "PreEMA2":
+        mode = "PreEMA3";
+        break;
+      case "PreEMA3":
         mode = "EMAWin";
         break;
       case "EMAWin":
+        mode = "EMALose";
+        break;
+      case "EMALose":
+        mode = "TSST";
+        break;
+      case "TSST":
         mode = "End";
         // TODO: Post data
         break;
@@ -87,20 +79,103 @@ function done(){
         mode = "Intro1";
         break;
     }
-    intro = true;
-    reset();
+}
+
+function skipGraph() {
+    switch (mode) {
+      case "Intro1":
+      case "Intro2":
+      case "PracticeEnd":
+      case "PreEMA3":
+        return true;
+      default:
+        return false;
+    }
+}
+
+function skipIntro() {
+    switch (mode) {
+      case "Intro4":
+      case "Intro5":
+      case "PreEMA2":
+        return true;
+      default:
+        return false;
+    }
+}
+
+function isAutomatic() {
+    switch (mode) {
+      case "Intro3":
+      case "Intro4":
+      case "Intro5":
+        return true;
+      default:
+        return false;
+    }
+}
+
+function valuesForMode() {
+    var array = [];
+    for (i = 0; i < 100; i++) {
+        array.push({'x': 1 - (i * 0.01), 'y': Math.random()});
+    }
+    return array;
+}
+
+function print() {
+}
+
+function done() {
+    clearTimeout(autodrawTimeout);
+    if (mode === "End") {
+        return;
+    }
+
+    if (mode === "PPT") {
+        mode = "Intro1";
+        ppt_id = $("#ppt_input").val()
+        draw();
+        return;
+    }
+
+
+    if (!intro || (intro && skipGraph())) {
+        // We were on the graph or told to skip it, so rotate
+        rotateMode();
+        intro = !skipIntro();
+    } else if (skipIntro() || (intro && !skipGraph())) {
+        // Show the graph right away
+        intro = false;
+    } else {
+        // We weren't on the graph yet, so turn off the intro and draw it
+        intro = false;
+    }
+
+    if (isAutomatic()) {
+        drawing_mode = "automatic";
+        autovals = valuesForMode();
+        curvals = [];
+    } else {
+        drawing_mode = "on";
+        curvals = [];
+        xmin = 0;
+    }
+
+    draw();
 }
 
 function reset(){
-    drawing = true;
+    drawing_mode = "on";
     curvals = [];
     xmin = 0;
     draw();
 }
 
 function draw(){
+    console.log(`Draw: ${drawing_mode}, in ${mode}, intro ${intro}`);
     if (intro) {
-        drawing = false;
+        drawing_mode = "off";
         response.hide();
         text.hide();
         ppt.hide();
@@ -119,17 +194,19 @@ function draw(){
         drawTitle(mode);
     } else {
         text.hide();
-        button_done.hide();
-        if (drawing) {
+        if (drawing_mode === "automatic") {
+            button_done.show();
+        } else {
+            button_done.hide();
+        }
+        if (drawing_mode === "on" || drawing_mode === "automatic") {
             response.hide();
+        } else {
+            response.show();
         }
         drawLinePlot();
         // Some intro plots have text
-        switch (mode) {
-          case "Intro3":
-            drawTitleOver("Intro3Graph");
-            break;
-        }
+        drawTitleOver(mode + "Graph");
     }
 }
 
@@ -221,6 +298,7 @@ function drawSectionsForMode(){
             ]);
             break;
 
+      case "Practice":
       case "PositiveFace":
         drawGraphSections([
               ["Positive picture", "", "#695", "#6f53", 0.0, 0.28],
@@ -239,6 +317,7 @@ function drawSectionsForMode(){
             ]);
             break;
 
+      case "PreEMA1":
       case "EMAWin":
         drawGraphSections([
               ["Playing game", "", "#569", "#56f3", 0.0, 0.1],
@@ -247,6 +326,7 @@ function drawSectionsForMode(){
             ]);
             break;
 
+      case "PreEMA2":
       case "EMALose":
         drawGraphSections([
               ["Playing game", "", "#569", "#56f3", 0.0, 0.1],
@@ -264,6 +344,15 @@ function drawTitle(id) {
 
 function drawTitleOver(id) {
     $('#' + id).show();
+}
+
+function autodraw() {
+    if (autovals.length == 0) {
+        return;
+    }
+    console.log(`autodraw: ${autovals.length} ${curvals.length}`)
+    curvals.push(autovals.pop());
+    autodrawTimeout = setTimeout(drawLinePlot, 100);
 }
 
 function drawLinePlot() {
@@ -286,13 +375,12 @@ function drawLinePlot() {
 
     drawSectionsForMode();
     drawGraphAxes("Time", ["Start","End"], "Intensity", ["Low","High"]);
+
+    if(drawing_mode === "automatic") {
+        autodraw();
+    }
     
-    if(drawing){
-        response.hide();
-        
-    } else {
-        response.show();
-        
+    if(drawing_mode === "off" || drawing_mode === "automatic") {
         var line = d3.line()
                 .x(function(d) {return x(d["x"]); })
                 .y(function(d) {return y(d["y"]); })
@@ -310,8 +398,8 @@ function drawLinePlot() {
     }
 }
 
-var normDrawing = function(drawn,xmax,ymax){
-    for (var i = 0; i < drawn.length; i ++){
+function smoothDrawing(drawn,xmax,ymax) {
+    for (var i = 0; i < drawn.length; i ++) {
         drawn[i]["x"] = (drawn[i]["x"])/xmax;
         drawn[i]["y"] = 1-(drawn[i]["y"]/ymax);
     }
@@ -358,7 +446,7 @@ svg.call(dragAndDraw);
 function dragstarted() {
     var valpos = d3.event.x>0 & d3.event.x<gwidth & d3.event.y>0 & d3.event.y<gheight;
           
-    if(drawing && valpos){
+    if(drawing_mode === "on" && valpos){
         xmin = d3.event.x;
         curvals = [];
         curvals.push({"x":d3.event.x,"y":d3.event.y});
@@ -366,11 +454,14 @@ function dragstarted() {
 }
 
 function dragging() {
-    if (!drawing) {
+    if (drawing_mode !== "on") {
         return;
     }
-    var last = curvals[curvals.length - 1],
-        x0 = last.x,
+    var last = curvals[curvals.length - 1];
+    if (last === undefined) {
+        last = {'x':1,'y':1};
+    }
+    var x0 = last.x,
         y0 = last.x,
         x1 = d3.event.x,
         y1 = d3.event.y,
@@ -397,15 +488,15 @@ function dragging() {
 }
 
 function dragstopped() {
-    if (!drawing) {
+    if (drawing_mode !== "on") {
         return;
     }
     if (curvals.length>2){
-        curvals = normDrawing(curvals,gwidth,gheight);
-        drawing = false;
+        curvals = smoothDrawing(curvals,gwidth,gheight);
+        drawing_mode = "off";
     } else {
         curvals = [];
-        drawing = true;
+        drawing_mode = "on";
     }
     redraw();
 }

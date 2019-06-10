@@ -5,7 +5,9 @@ var drawing_mode = "off";
 var intro = true;
 var curvals = [],
     autovals = [],
-    autodrawTimeout = undefined;
+    autodrawTimeout = undefined,
+    startMillis = 0,
+    currentMillis = 0;
 var x,
     y,
     margin,
@@ -117,13 +119,34 @@ function isAutomatic() {
 
 function valuesForMode() {
     var array = [];
-    for (i = 0; i < 100; i++) {
-        array.push({'x': 1 - (i * 0.01), 'y': Math.random()});
+    var div = $(".graphdata." + mode);
+    if (div.length >= 1) {
+        var points = div.find("span");
+        points.each(function(p) {
+            array.push({
+              x: $(this).data('x'),
+              y: $(this).data('y'),
+              time: $(this).data('time'),
+            });
+        });
+    } else {
+        for (i = 0; i < 100; i++) {
+            array.push({
+              x: i * 0.01,
+              y: Math.random(),
+              time: x * 100,
+            });
+        }
     }
     return array;
 }
 
 function print() {
+    var div = $(document.createElement('div'));
+    curvals.forEach(function(o) {
+        div.append($(`<span data-x='${o.x}' data-y='${o.y}' data-time='${o.time}'>`));
+    });
+    $('body').append(div);
 }
 
 function done() {
@@ -155,6 +178,7 @@ function done() {
     if (isAutomatic()) {
         drawing_mode = "automatic";
         autovals = valuesForMode();
+        currentMillis = 0;
         curvals = [];
     } else {
         drawing_mode = "on";
@@ -290,6 +314,8 @@ function drawSectionsForMode(){
             ]);
             break;
 
+      case "Intro3":
+      case "Intro4":
       case "NegativeFace":
         drawGraphSections([
               ["Negative picture", "", "#956", "#f563", 0.0, 0.28],
@@ -299,6 +325,7 @@ function drawSectionsForMode(){
             break;
 
       case "Practice":
+      case "Intro5":
       case "PositiveFace":
         drawGraphSections([
               ["Positive picture", "", "#695", "#6f53", 0.0, 0.28],
@@ -350,9 +377,15 @@ function autodraw() {
     if (autovals.length == 0) {
         return;
     }
-    console.log(`autodraw: ${autovals.length} ${curvals.length}`)
-    curvals.push(autovals.pop());
-    autodrawTimeout = setTimeout(drawLinePlot, 100);
+    //console.log(`autodraw: ${autovals.length} ${curvals.length}`)
+    var point = autovals.shift()
+    curvals.push(point);
+    var timeout = currentMillis - point.time;
+    if (timeout <= 10) {
+      timeout = 10
+    }
+    autodrawTimeout = setTimeout(drawLinePlot, timeout);
+    currentMillis = point.time;
 }
 
 function drawLinePlot() {
@@ -447,9 +480,10 @@ function dragstarted() {
     var valpos = d3.event.x>0 & d3.event.x<gwidth & d3.event.y>0 & d3.event.y<gheight;
           
     if(drawing_mode === "on" && valpos){
+        startMillis = Date.now();
         xmin = d3.event.x;
         curvals = [];
-        curvals.push({"x":d3.event.x,"y":d3.event.y});
+        curvals.push({"x":d3.event.x,"y":d3.event.y,"time":0.0});
     }
 }
 
@@ -476,7 +510,7 @@ function dragging() {
               .attr("stroke-width","5px")
               .attr("stroke-linejoin","round")
               .attr("stroke-linecap","round");
-        curvals.push({"x":x1,"y":y1});
+        curvals.push({"x":x1,"y":y1,"time":Date.now()-startMillis});
         xmin = x1;
         if (dx * dx + dy * dy > 20) {
             d.push([x0 = x1, y0 = y1]);

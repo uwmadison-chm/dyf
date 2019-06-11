@@ -234,11 +234,82 @@ function draw(){
     }
 }
 
+function xtickArguments(){
+    switch (mode) {
+      case "Intro3":
+      case "Intro4":
+      case "Intro5":
+      case "Practice":
+      case "NegativeFace":
+      case "PositiveFace":
+        return [12, "s"];
+      case "PreEMA1":
+      case "PreEMA2":
+      case "EMAWin":
+      case "EMALose":
+        return [90, "m"];
+      default:
+        return [];
+    }
+}
+
+function xtickValues(){
+    switch (mode) {
+      case "Intro3":
+      case "Intro4":
+      case "Intro5":
+      case "Practice":
+      case "NegativeFace":
+      case "PositiveFace":
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+      case "PreEMA1":
+      case "PreEMA2":
+      case "EMAWin":
+      case "EMALose":
+        return [2, 4, 10, 20, 30, 40, 50, 60, 70, 80, 88];
+      default:
+        return [];
+    }
+}
+
+function xScaleWidthForCurrentMode() {
+    switch (mode) {
+      case "Intro3":
+      case "Intro4":
+      case "Intro5":
+      case "Practice":
+      case "NegativeFace":
+      case "PositiveFace":
+        return 12;
+      case "PreEMA1":
+      case "PreEMA2":
+      case "EMAWin":
+      case "EMALose":
+        return 90;
+      default:
+        return 1;
+    }
+}
+
+function xFormat(value) {
+    var suffix = "s";
+    if (mode.includes("EMA")) {
+        suffix = "m";
+    }
+    return d3.format("d")(value) + suffix;
+}
+
 
 function drawGraphAxes(x_label, xtick_labels, y_label, ytick_labels){
+    var xScale = d3.scaleLinear()
+        .range([0, gwidth])
+        .domain([0, xScaleWidthForCurrentMode()]);
+    var xValues = xtickValues();
     var xAxis = d3.axisBottom(x)
-                .ticks(xtick_labels.length - 1)
-                .tickFormat(function(d,i){ return xtick_labels[i] });
+                .scale(xScale)
+                .tickArguments(xtickArguments())
+                .tickValues(xValues)
+                .tickFormat(xFormat);
     var yAxis = d3.axisLeft(y)
                 .ticks(ytick_labels.length - 1)
                 .tickFormat(function(d,i){ return ytick_labels[i] });
@@ -274,8 +345,16 @@ function drawGraphAxes(x_label, xtick_labels, y_label, ytick_labels){
         .text(y_label);
 }
 
-function drawGraphSection(label, tick_label, color, fill, x, width){
+function drawGraphSection(label, tickLabel, color, fill, x, width, horizontalOffset, verticalOffset){
+    var position = gwidth * (x + width/2)
+    if (horizontalOffset) {
+        position += horizontalOffset;
+    }
+
     var textheight = gheight * 0.9;
+    if (verticalOffset) {
+        textheight += verticalOffset;
+    }
     svg.append("rect")
         .attr("width",gwidth*width)
         .attr("x", gwidth*x)
@@ -285,17 +364,17 @@ function drawGraphSection(label, tick_label, color, fill, x, width){
         .style("fill",color)
         .attr("text-anchor", "middle")
         .attr("font-size",20)
-        .attr("x", gwidth * (x + width/2))
+        .attr("x", position)
         .attr("y", textheight)
         .text(label);
-    if (tick_label) {
+    if (tickLabel) {
         svg.append("text")
             .style("fill","#956")
             .attr("text-anchor", "middle")
             .attr("font-size",16)
             .attr("x", gwidth * x)
-            .attr("y", gheight+16)
-            .text(tick_label);
+            .attr("y", gheight + 16)
+            .text(tickLabel);
     }
 }
 
@@ -307,20 +386,11 @@ function drawGraphSections(sections){
 
 function drawSectionsForMode(){
     switch (mode) {
-      case "Intro":
-        drawGraphSections([
-              ["Hit finger with hammer", "", "#956", "#f563", 0.0, 0.25],
-              ["", "4s", "#999", "#fff", 0.25, 0.1],
-            ]);
-            break;
-
       case "Intro3":
       case "Intro4":
       case "NegativeFace":
         drawGraphSections([
-              ["Negative picture", "", "#956", "#f563", 0.0, 0.28],
-              ["", "4s", "#999", "#fff", 0.28, 0.14],
-              ["Face", "6s", "#569", "#56f3", 0.42, 0.035],
+              ["Negative picture", "", "#956", "#f563", 0.0, 0.333],
             ]);
             break;
 
@@ -328,9 +398,7 @@ function drawSectionsForMode(){
       case "Intro5":
       case "PositiveFace":
         drawGraphSections([
-              ["Positive picture", "", "#695", "#6f53", 0.0, 0.28],
-              ["", "4s", "#999", "#fff", 0.28, 0.14],
-              ["Face", "6s", "#569", "#56f3", 0.42, 0.035],
+              ["Positive picture", "", "#695", "#6f53", 0.0, 0.333],
             ]);
             break;
 
@@ -347,18 +415,18 @@ function drawSectionsForMode(){
       case "PreEMA1":
       case "EMAWin":
         drawGraphSections([
-              ["Playing game", "", "#569", "#56f3", 0.0, 0.1],
-              ["You won", "???", "#596", "#5f63", 0.15, 0.1],
-              ["Being surveyed after game", "???", "#666", "#aaa3", 0.3, 0.4],
+              ["Playing game", "", "#569", "#56f3", 0.0, 0.022222, 30],
+              ["You won", "", "#596", "#5f63", 0.0222222, 0.022222, 30, 30],
+              ["Being surveyed after game", "", "#666", "#aaa3", 0.05, 0.93],
             ]);
             break;
 
       case "PreEMA2":
       case "EMALose":
         drawGraphSections([
-              ["Playing game", "", "#569", "#56f3", 0.0, 0.1],
-              ["You lost", "???", "#956", "#f563", 0.15, 0.1],
-              ["Being surveyed after game", "???", "#666", "#aaa3", 0.3, 0.4],
+              ["Playing game", "", "#569", "#56f3", 0.0, 0.022222, 30],
+              ["You lost", "", "#956", "#f563", 0.0222222, 0.022222, 30, 30],
+              ["Being surveyed after game", "", "#666", "#aaa3", 0.05, 0.93],
             ]);
             break;
     }

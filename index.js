@@ -263,10 +263,11 @@ function xtickValues(){
       case "PositiveFace":
         return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
       case "PreEMA1":
-      case "PreEMA2":
       case "EMAWin":
+        return ["Win", 10, 20, 30, 40, 50, 60, 70, 80, 90];
+      case "PreEMA2":
       case "EMALose":
-        return [2, 4, 10, 20, 30, 40, 50, 60, 70, 80, 88];
+        return ["Lose", 10, 20, 30, 40, 50, 60, 70, 80, 90];
       default:
         return [];
     }
@@ -296,7 +297,11 @@ function xFormat(value) {
     if (mode.includes("EMA")) {
         suffix = "m";
     }
-    return d3.format("d")(value) + suffix;
+    if (typeof value === 'string') {
+        return value;
+    } else {
+        return d3.format("d")(value) + suffix;
+    }
 }
 
 
@@ -415,18 +420,16 @@ function drawSectionsForMode(){
       case "PreEMA1":
       case "EMAWin":
         drawGraphSections([
-              ["Playing game", "", "#569", "#56f3", 0.0, 0.022222, 30],
-              ["You won", "", "#596", "#5f63", 0.0222222, 0.022222, 30, 30],
-              ["Being surveyed after game", "", "#666", "#aaa3", 0.05, 0.93],
+              ["You won", "", "#596", "#5f63", 0.0, 0.1],
+              ["Being surveyed after game", "", "#666", "#aaa3", 0.1, 0.9],
             ]);
             break;
 
       case "PreEMA2":
       case "EMALose":
         drawGraphSections([
-              ["Playing game", "", "#569", "#56f3", 0.0, 0.022222, 30],
-              ["You lost", "", "#956", "#f563", 0.0222222, 0.022222, 30, 30],
-              ["Being surveyed after game", "", "#666", "#aaa3", 0.05, 0.93],
+              ["You lost", "", "#956", "#f563", 0.0, 0.1],
+              ["Being surveyed after game", "", "#666", "#aaa3", 0.1, 0.9],
             ]);
             break;
     }

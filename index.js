@@ -264,10 +264,10 @@ function xtickValues(){
         return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
       case "PreEMA1":
       case "EMAWin":
-        return ["Win", 10, 20, 30, 40, 50, 60, 70, 80, 90];
+        return ["Win $10", 10, 20, 30, 40, 50, 60, 70, 80, 90];
       case "PreEMA2":
       case "EMALose":
-        return ["Lose", 10, 20, 30, 40, 50, 60, 70, 80, 90];
+        return ["Lose $5", 10, 20, 30, 40, 50, 60, 70, 80, 90];
       default:
         return [];
     }
@@ -420,16 +420,16 @@ function drawSectionsForMode(){
       case "PreEMA1":
       case "EMAWin":
         drawGraphSections([
-              ["You won", "", "#596", "#5f63", 0.0, 0.1],
-              ["Being surveyed after game", "", "#666", "#aaa3", 0.1, 0.9],
+              ["You won $10", "", "#596", "#5f63", 0.0, 0.11111],
+              ["Being surveyed after game", "", "#666", "#fff", 0.11111, 0.89999],
             ]);
             break;
 
       case "PreEMA2":
       case "EMALose":
         drawGraphSections([
-              ["You lost", "", "#956", "#f563", 0.0, 0.1],
-              ["Being surveyed after game", "", "#666", "#aaa3", 0.1, 0.9],
+              ["You lost $5", "", "#956", "#f563", 0.0, 0.11111],
+              ["Being surveyed after game", "", "#666", "#fff", 0.11111, 0.89999],
             ]);
             break;
     }
@@ -554,7 +554,16 @@ function dragstarted() {
         startMillis = Date.now();
         xmin = d3.event.x;
         curvals = [];
+        curvals.push({"x":0.0,"y":gheight,"time":0.0});
         curvals.push({"x":d3.event.x,"y":d3.event.y,"time":0.0});
+        // Draw a line from 0 always
+        var active = svg.append("path").datum([[0.0, gheight], [d3.event.x,d3.event.y]])
+          .attr("fill","none")
+          .attr("stroke","#0066ff")
+          .attr("stroke-width","5px")
+          .attr("stroke-linejoin","round")
+          .attr("stroke-linecap","round")
+          .attr("d", line);
     }
 }
 

@@ -293,9 +293,9 @@ function xScaleWidthForCurrentMode() {
 }
 
 function xFormat(value) {
-    var suffix = "s";
+    var suffix = "sec";
     if (mode.includes("EMA")) {
-        suffix = "m";
+        suffix = "min";
     }
     if (typeof value === 'string') {
         return value;
@@ -330,20 +330,20 @@ function drawGraphAxes(x_label, xtick_labels, y_label, ytick_labels){
         .call(yAxis)
     
     d3.selectAll(".tick")
-        .attr("font-size",16);
+        .attr("font-size",24);
 
     svg.append("text")
         .attr("class", "xlabel")
         .attr("text-anchor", "middle")
-        .attr("font-size",20)
+        .attr("font-size",30)
         .attr("x", gwidth/2)
-        .attr("y", gheight + 50)
+        .attr("y", gheight + 70)
         .text(x_label)
     
     svg.append("text")
         .attr("class", "ylabel")
         .attr("text-anchor", "middle")
-        .attr("font-size",20)
+        .attr("font-size",30)
         .attr("x", -(gheight)/2)
         .attr("y", -margin.top + 30)
         .attr("transform", "rotate(-90)")
@@ -368,17 +368,17 @@ function drawGraphSection(label, tickLabel, color, fill, x, width, horizontalOff
     svg.append("text")
         .style("fill",color)
         .attr("text-anchor", "middle")
-        .attr("font-size",20)
+        .attr("font-size",30)
         .attr("x", position)
         .attr("y", textheight)
         .text(label);
     if (tickLabel) {
         svg.append("text")
-            .style("fill","#956")
+            .style("fill","#333")
             .attr("text-anchor", "middle")
-            .attr("font-size",16)
+            .attr("font-size",24)
             .attr("x", gwidth * x)
-            .attr("y", gheight + 16)
+            .attr("y", gheight + 24)
             .text(tickLabel);
     }
 }
@@ -408,28 +408,29 @@ function drawSectionsForMode(){
             break;
 
       case "TSST":
+        var c = 1.0 / 12.0;
         drawGraphSections([
-              ["Prep", "", "#695", "#6f53", 0.0, 0.1],
-              ["Speech", "5min", "#956", "#f563", 0.1, 0.1],
-              ["Math", "10min", "#569", "#56f3", 0.2, 0.1],
-              ["Sitting down", "15min", "#666", "#fff", 0.3, 0.4],
-              ["Rating yourself", "1hr", "#666", "#6663", 0.7, 0.3],
+              ["Prep", "", "#695", "#6f53", 0*c, 1*c],
+              ["Speech", "5min", "#956", "#f563", 1*c, 1*c, 0, -40],
+              ["Math", "10min", "#569", "#56f3", 2*c, 1*c],
+              ["Standing up", "15min", "#666", "#fff0", 3*c, 1*c, 0, -40],
+              ["Sitting down", "20min", "#666", "#9993", 4*c, 2*c],
+              ["Home instructions", "30min", "#33a", "#fff0", 6*c, 3*c, 0, -40],
+              ["Rating yourself", "1hr", "#666", "#6663", 9*c, 3*c],
             ]);
             break;
 
       case "PreEMA1":
       case "EMAWin":
         drawGraphSections([
-              ["You won $10", "", "#596", "#5f63", 0.0, 0.11111],
-              ["Being surveyed after game", "", "#666", "#fff", 0.11111, 0.89999],
+              ["Being texted surveys after winning $10", "", "#666", "#fff", 0.0, 1.0],
             ]);
             break;
 
       case "PreEMA2":
       case "EMALose":
         drawGraphSections([
-              ["You lost $5", "", "#956", "#f563", 0.0, 0.11111],
-              ["Being surveyed after game", "", "#666", "#fff", 0.11111, 0.89999],
+              ["Being texted surveys after losing $5", "", "#666", "#fff", 0.0, 1.0],
             ]);
             break;
     }
@@ -516,7 +517,7 @@ function redraw(){
 }
 
 function resize(){
-    margin = {top: 40, right: 40, bottom: 80, left: 75};
+    margin = {top: 40, right: 40, bottom: 95, left: 75};
     width = visarea.clientWidth;
     height = visarea.clientHeight;
     gheight = height - margin.top - margin.bottom;

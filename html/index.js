@@ -16,6 +16,9 @@ var x,
     gheight,
     gwidth;
 
+var data = {};
+var dataPosted = false;
+
 // Only let them draw forward
 var xmin = 0;
 var line = d3.line().curve(d3.curveBasis);
@@ -24,8 +27,6 @@ var button_done = $("#button_done");
 var response = $("#response");
 var ppt = $("#ppt");
 var text = $(".text");
-
-var ppt_id = "";
 
 var vis = $("#visarea");
 
@@ -75,7 +76,6 @@ function rotateMode() {
         break;
       case "TSST":
         mode = "End";
-        // TODO: Post data
         break;
       default:
         mode = "Intro1";
@@ -157,7 +157,7 @@ function done() {
 
     if (mode === "PPT") {
         mode = "Intro1";
-        ppt_id = $("#ppt_input").val()
+        data.ppt_id = $("#ppt_input").val()
         draw();
         return;
     }
@@ -165,6 +165,25 @@ function done() {
 
     if (!intro || (intro && skipGraph())) {
         // We were on the graph or told to skip it, so rotate
+        // But first, do we save the vals to data?
+        switch (mode) {
+            case "NegativeFace":
+                data.NegativeFace = curvals;
+                break;
+            case "PositiveFace":
+                data.PositiveFace = curvals;
+                break;
+            case "EMAWin":
+                data.EMAWin = curvals;
+                break;
+            case "EMALose":
+                data.EMALose = curvals;
+                break;
+            case "TSST":
+                data.TSST = curvals;
+                postData();
+                break;
+        }
         rotateMode();
         intro = !skipIntro();
     } else if (skipIntro() || (intro && !skipGraph())) {
@@ -614,6 +633,27 @@ function dragstopped() {
         drawing_mode = "on";
     }
     redraw();
+}
+
+function postData() {
+    if (dataPosted) {
+        return;
+    }
+    console.log("Posting data: ", data);
+    $.ajax({
+        type: "POST",
+        url: "backend.php",
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data) {
+            dataPosted = true;
+            console.log("Upload successful", data);
+        },
+        failure: function(errMsg) {
+            alert("Error uploading data: " + errMsg);
+        }
+    });
 }
 
 window.addEventListener("resize", redraw);

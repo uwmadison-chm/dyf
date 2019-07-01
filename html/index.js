@@ -45,9 +45,12 @@ function rotateMode() {
         mode = "Intro5";
         break;
       case "Intro5":
-        mode = "Practice";
+        mode = "PracticePositive";
         break;
-      case "Practice":
+      case "PracticePositive":
+        mode = "PracticeNegative";
+        break;
+      case "PracticeNegative":
         mode = "PracticeEnd";
         break;
       case "PracticeEnd":
@@ -258,7 +261,8 @@ function xtickArguments(){
       case "Intro3":
       case "Intro4":
       case "Intro5":
-      case "Practice":
+      case "PracticePositive":
+      case "PracticeNegative":
       case "NegativeFace":
       case "PositiveFace":
         return [12, "s"];
@@ -277,7 +281,8 @@ function xtickValues(){
       case "Intro3":
       case "Intro4":
       case "Intro5":
-      case "Practice":
+      case "PracticePositive":
+      case "PracticeNegative":
       case "NegativeFace":
       case "PositiveFace":
         return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -297,7 +302,8 @@ function xScaleWidthForCurrentMode() {
       case "Intro3":
       case "Intro4":
       case "Intro5":
-      case "Practice":
+      case "PracticePositive":
+      case "PracticeNegative":
       case "NegativeFace":
       case "PositiveFace":
         return 12;
@@ -412,13 +418,14 @@ function drawSectionsForMode(){
     switch (mode) {
       case "Intro3":
       case "Intro4":
+      case "PracticeNegative":
       case "NegativeFace":
         drawGraphSections([
               ["Negative picture", "", "#956", "#f563", 0.0, 0.333],
             ]);
             break;
 
-      case "Practice":
+      case "PracticePositive":
       case "Intro5":
       case "PositiveFace":
         drawGraphSections([
@@ -498,7 +505,7 @@ function drawLinePlot() {
     var textheight = gheight * 0.9;
 
     drawSectionsForMode();
-    drawGraphAxes("Time", ["Start","End"], "Intensity", ["Low","High"]);
+    drawGraphAxes("Time", ["Start","End"], "Emotional Response Intensity", ["Start","High"]);
 
     if(drawing_mode === "automatic") {
         autodraw();

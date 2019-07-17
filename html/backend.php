@@ -1,12 +1,11 @@
 <?php
 
-// Define path for the database file
+error_reporting(-1);
+ini_set('display_errors', 'On');
+
+// Database
 define('DB_PATH', getcwd() . '/data/data.sqlite');
-
-// Establish a database connection
 $db = new PDO('sqlite:' . DB_PATH);
-
-// Throw exceptions when errors occur
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 // Create table, if necessary
@@ -25,26 +24,16 @@ $db->exec(
   )'
 );
 
-// Establish or continue session
-session_start([
-  'cookie_lifetime' => 86400, // 24 hours
-  'cookie_httponly' => true,  // Not accessible via JavaScript
-  'read_and_close'  => true,  // Extract information and remove lock
-]);
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-  // Decode transmitted data
+  // Decode POST data
   $data = json_decode(file_get_contents('php://input'), true);
 
-  // (Cursory) validity check
   if (is_array($data)) {
-    // Setup prepared statement
     $insert =
-      'INSERT INTO dyf (session, timestamp, url, metadata, NegativeFace)
-       VALUES (:session, :timestamp, :url, :metadata, :NegativeFace, :PositiveFace, :EMAWin, :EMALose, :TSST)';
+      'INSERT INTO dyf (pid, session, timestamp, metadata, NegativeFace, PositiveFace, EMAWin, EMALose, TSST)
+       VALUES (:pid, :session, :timestamp, :metadata, :NegativeFace, :PositiveFace, :EMAWin, :EMALose, :TSST)';
     $stmt = $db->prepare($insert);
 
-    // Insert data
     $stmt->execute(array(
       ':session' => session_id() ?: 'unknown',
       ':pid' => isset($data['pid']) ? $data['pid'] : 'none',

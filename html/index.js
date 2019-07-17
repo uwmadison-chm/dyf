@@ -16,6 +16,7 @@ var x,
     gheight,
     gwidth;
 
+const DEBUG = true;
 var data = {};
 var dataPosted = false;
 
@@ -155,6 +156,9 @@ function print() {
 function done() {
     clearTimeout(autodrawTimeout);
     if (mode === "End") {
+        if (DEBUG) {
+            postData();
+        }
         return;
     }
 
@@ -231,7 +235,12 @@ function draw(){
             ppt.show();
             break;
           case "End":
-            button_done.hide();
+            if (DEBUG) {
+              // Allow multiple posts during testing
+              button_done.show();
+            } else {
+              button_done.hide();
+            }
             break;
           default:
             button_done.show();
@@ -643,7 +652,7 @@ function dragstopped() {
 }
 
 function postData() {
-    if (dataPosted) {
+    if (dataPosted && !DEBUG) {
         return;
     }
     console.log("Posting data: ", data);

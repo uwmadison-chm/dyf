@@ -18,10 +18,10 @@ echo "<h1>Draw your feels: ".$count." entries</h1>";
 
 echo "<p>Most recent first:</p>";
 
-$stmt = $db->query("SELECT pid FROM dyf ORDER BY timestamp DESC LIMIT 20");
+$stmt = $db->query("SELECT timestamp FROM dyf ORDER BY timestamp DESC LIMIT 20");
 
 while ($row = $stmt->fetch()) {
-  echo "PID: ".$row['pid'].", Timestamp: ".$row['timestamp']."<br/>";
+  echo "Timestamp submitted: ".$row['timestamp']."<br/>";
 }
 
 ?>

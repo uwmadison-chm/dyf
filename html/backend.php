@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
       $stmt->execute(array(
         ':session' => session_id() ?: 'unknown',
-        ':pid' => isset($data['pid']) ? $data['pid'] : 'none',
+        ':pid' => isset($data['ppt']) ? $data['ppt'] : 'none',
         ':timestamp' => date('c'),
         ':metadata' => isset($data['metadata']) ? json_encode($data['metadata']) : 'none',
         ':NegativeFace' => isset($data['NegativeFace']) ? json_encode($data['NegativeFace']) : 'none',

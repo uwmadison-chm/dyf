@@ -16,7 +16,7 @@ var x,
     gheight,
     gwidth;
 
-const DEBUG = true;
+const DEBUG = false;
 var data = {};
 var dataPosted = false;
 
@@ -164,7 +164,7 @@ function done() {
 
     if (mode === "PPT") {
         mode = "Intro1";
-        data.ppt_id = $("#ppt_input").val()
+        data.ppt = $("#ppt_input").val()
         draw();
         return;
     }

@@ -447,10 +447,10 @@ function drawSectionsForMode(){
       case "TSST":
         var c = 1.0 / 6.0;
         drawGraphSections([
-              ["Prep", "", "#695", "#6f53", 0*c, 1*c],
-              ["Speech", "5min", "#956", "#f563", 1*c, 1*c, 0, -40],
+              ["Preparation", "", "#695", "#6f53", 0*c, 1*c],
+              ["Speech", "5min", "#956", "#f563", 1*c, 1*c, 0],
               ["Math", "10min", "#569", "#56f3", 2*c, 1*c],
-              ["Standing up", "15min", "#666", "#fff0", 3*c, 1*c, 0, -40],
+              ["Standing up", "15min", "#666", "#fff0", 3*c, 1*c, 0],
               ["Sitting down", "20min", "#666", "#9993", 4*c, 2*c],
             ]);
             break;

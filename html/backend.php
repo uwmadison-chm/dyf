@@ -13,6 +13,7 @@ $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $db->exec(
   'CREATE TABLE IF NOT EXISTS dyf (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    version TEXT,
     pid TEXT,
     session TEXT,
     timestamp TEXT,
@@ -33,13 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   if (is_array($data)) {
     try {
       $insert =
-        'INSERT INTO dyf (pid, session, timestamp, metadata, NegativeFace, PositiveFace, EMAWin, EMALose, TSST)
-        VALUES (:pid, :session, :timestamp, :metadata, :NegativeFace, :PositiveFace, :EMAWin, :EMALose, :TSST)';
+        'INSERT INTO dyf (pid, session, version, timestamp, metadata, NegativeFace, PositiveFace, EMAWin, EMALose, TSST)
+        VALUES (:pid, :session, :version, :timestamp, :metadata, :NegativeFace, :PositiveFace, :EMAWin, :EMALose, :TSST)';
       $stmt = $db->prepare($insert);
 
       $stmt->execute(array(
         ':session' => session_id() ?: 'unknown',
         ':pid' => isset($data['ppt']) ? $data['ppt'] : 'none',
+        ':version' => isset($data['version']) ? $data['version'] : 'none',
         ':timestamp' => date('c'),
         ':metadata' => isset($data['metadata']) ? json_encode($data['metadata']) : 'none',
         ':NegativeFace' => isset($data['NegativeFace']) ? json_encode($data['NegativeFace']) : 'none',

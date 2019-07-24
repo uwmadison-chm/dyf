@@ -1,3 +1,6 @@
+const VERSION = "1.0.0";
+const DEBUG = false;
+
 var mode = "PPT";
 var container;
 var svg;
@@ -16,8 +19,7 @@ var x,
     gheight,
     gwidth;
 
-const DEBUG = false;
-var data = {};
+var data = {version: VERSION};
 var dataPosted = false;
 
 // Only let them draw forward
@@ -176,18 +178,23 @@ function done() {
         switch (mode) {
             case "NegativeFace":
                 data.NegativeFace = curvals;
+                data.NegativeFace.scale = "20s";
                 break;
             case "PositiveFace":
                 data.PositiveFace = curvals;
+                data.PositiveFace.scale = "20s";
                 break;
             case "EMAWin":
                 data.EMAWin = curvals;
+                data.EMAWin.scale = "90m";
                 break;
             case "EMALose":
                 data.EMALose = curvals;
+                data.EMALose.scale = "90m";
                 break;
             case "TSST":
                 data.TSST = curvals;
+                data.TSST.scale = "TSST";
                 postData();
                 break;
         }

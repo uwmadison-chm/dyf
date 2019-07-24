@@ -178,23 +178,18 @@ function done() {
         switch (mode) {
             case "NegativeFace":
                 data.NegativeFace = curvals;
-                data.NegativeFace.scale = "20s";
                 break;
             case "PositiveFace":
                 data.PositiveFace = curvals;
-                data.PositiveFace.scale = "20s";
                 break;
             case "EMAWin":
                 data.EMAWin = curvals;
-                data.EMAWin.scale = "90m";
                 break;
             case "EMALose":
                 data.EMALose = curvals;
-                data.EMALose.scale = "90m";
                 break;
             case "TSST":
                 data.TSST = curvals;
-                data.TSST.scale = "TSST";
                 postData();
                 break;
         }

@@ -50,12 +50,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ':EMALose' => isset($data['EMALose']) ? json_encode($data['EMALose']) : 'none',
         ':TSST' => isset($data['TSST']) ? json_encode($data['TSST']) : 'none',
       ));
+      echo "{}\n";
       http_response_code(200);
     } catch (exception $e) {
       http_response_code(500);
-      echo $e->getMessage();
-      echo "\n";
+      echo "{error:'" . $e->getMessage();
+      echo ", trace: ";
       echo $e->getTraceAsString();
+      echo "}";
     }
 
   } else {

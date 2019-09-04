@@ -1,4 +1,4 @@
-const VERSION = "1.0.0";
+const VERSION = "1.0.1";
 const DEBUG = false;
 
 var mode = "PPT";
@@ -656,19 +656,20 @@ function postData() {
         return;
     }
     console.log("Posting data: ", data);
-    $.ajax({
-        type: "POST",
+    $.post({
         url: "backend.php",
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: function(data) {
-            dataPosted = true;
-            console.log("Upload successful", data);
-        },
-        failure: function(errMsg) {
-            alert("Error uploading data: " + errMsg);
-        }
+    })
+    .done(function(data) {
+      dataPosted = true;
+      console.log("Upload successful", data);
+      $('#End').append("<p>Upload is complete!</p>");
+    })
+    .fail(function(data, errMsg) {
+      console.log("Upload failed", data);
+      $('#End').append("<p>Upload failed! " + errMsg + " Please leave this open and contact RSC. rsc@lists.wisc.edu</p>");
     });
 }
 

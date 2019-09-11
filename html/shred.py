@@ -7,6 +7,8 @@ import json
 import sqlite3
 from sqlite3 import Error
 
+DEBUG = False
+
 def connect(db):
     try:
         return sqlite3.connect(db)
@@ -36,9 +38,17 @@ def main():
             out.writerow(['PID', 'Version', 'Timestamp', 'Kind', 'X', 'Y', 'MS'])
             
             def parse_chunk(name):
-                chunk = json.loads(row[name])
-                for point in chunk:
-                    out.writerow([pid, version, timestamp, name, point['x'], point['y'], point['time']])
+                content = row[name]
+                if content == None or content == 'none':
+                    if DEBUG: print(f'No content for {name} for {pid}')
+                    return
+                try:
+                    chunk = json.loads(content)
+                    for point in chunk:
+                        out.writerow([pid, version, timestamp, name, point['x'], point['y'], point['time']])
+                except:
+                    print(f'Content for {name} is {content} for {pid}, could not parse')
+                    sys.exit(1)
 
             parse_chunk('NegativeFace')
             parse_chunk('PositiveFace')

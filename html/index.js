@@ -11,6 +11,8 @@ var curvals = [],
     autodrawTimeout = undefined,
     startMillis = 0,
     currentMillis = 0;
+var numBarSections = 12,
+    currentBar = 0;
 var x,
     y,
     margin,
@@ -81,6 +83,9 @@ function rotateMode() {
         mode = "TSST";
         break;
       case "TSST":
+        mode = "PandemicStress";
+        break;
+      case "PandemicStress":
         mode = "End";
         break;
       default:
@@ -117,6 +122,15 @@ function isAutomatic() {
       case "Intro3":
       case "Intro4":
       case "Intro5":
+        return true;
+      default:
+        return false;
+    }
+}
+
+function isBarChart() {
+    switch (mode) {
+      case "PandemicStress":
         return true;
       default:
         return false;
@@ -165,12 +179,13 @@ function done() {
     }
 
     if (mode === "PPT") {
-        mode = "Intro1";
+        // TODO
+        // mode = "Intro1";
+        mode = "PandemicStress";
         data.ppt = $("#ppt_input").val()
         draw();
         return;
     }
-
 
     if (!intro || (intro && skipGraph())) {
         // We were on the graph or told to skip it, so rotate
@@ -190,6 +205,10 @@ function done() {
                 break;
             case "TSST":
                 data.TSST = curvals;
+                break;
+            case "PandemicStress":
+                // TODO: where the data is
+                data.PandemicStress = curvals;
                 postData();
                 break;
         }
@@ -208,6 +227,9 @@ function done() {
         autovals = valuesForMode();
         currentMillis = 0;
         curvals = [];
+    } else if (isBarChart()) {
+        drawing_mode = "bar";
+        curvals = [0.5, 1.0, 0.75, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.0, 0.1, 0.9];
     } else {
         drawing_mode = "on";
         curvals = [];
@@ -225,7 +247,9 @@ function reset(){
 }
 
 function draw(){
-    console.log(`Draw: ${drawing_mode}, in ${mode}, intro ${intro}`);
+    if (DEBUG) {
+        console.log(`Draw: ${drawing_mode}, in ${mode}, intro ${intro}`);
+    }
     if (intro) {
         drawing_mode = "off";
         response.hide();
@@ -256,12 +280,16 @@ function draw(){
         } else {
             button_done.hide();
         }
-        if (drawing_mode === "on" || drawing_mode === "automatic") {
+        if (drawing_mode === "on" || drawing_mode === "automatic" || drawing_mode === "bar") {
             response.hide();
         } else {
             response.show();
         }
-        drawLinePlot();
+        if (drawing_mode === "bar") {
+            drawBarChart();
+        } else {
+            drawLinePlot();
+        }
         // Some intro plots have text
         drawTitleOver(mode + "Graph");
     }
@@ -386,8 +414,14 @@ function drawGraphAxes(x_label, xtick_labels, y_label, ytick_labels){
         .text(y_label);
 }
 
-function drawGraphSection(label, tickLabel, color, fill, x, width, horizontalOffset, verticalOffset){
-    var position = gwidth * (x + width/2)
+function drawGraphSection(label, tickLabel, color, fill, x, width, horizontalOffset, verticalOffset, fontSize, tickFontSize){
+    var position = gwidth * (x + width/2);
+    if (!fontSize) {
+        fontSize = 30;
+    }
+    if (!tickFontSize) {
+        tickFontSize = 24;
+    }
     if (horizontalOffset) {
         position += horizontalOffset;
     }
@@ -404,7 +438,7 @@ function drawGraphSection(label, tickLabel, color, fill, x, width, horizontalOff
     svg.append("text")
         .style("fill",color)
         .attr("text-anchor", "middle")
-        .attr("font-size",30)
+        .attr("font-size", fontSize)
         .attr("x", position)
         .attr("y", textheight)
         .text(label);
@@ -412,7 +446,7 @@ function drawGraphSection(label, tickLabel, color, fill, x, width, horizontalOff
         svg.append("text")
             .style("fill","#333")
             .attr("text-anchor", "middle")
-            .attr("font-size",24)
+            .attr("font-size",tickFontSize)
             .attr("x", gwidth * x)
             .attr("y", gheight + 24)
             .text(tickLabel);
@@ -546,6 +580,55 @@ function smoothDrawing(drawn,xmax,ymax) {
     return drawn;
 }
 
+function drawBar(color, fill, x, width, height) {
+    svg.append("rect")
+        .attr("width",gwidth*width)
+        .attr("x", gwidth*x)
+        .attr("y", gheight*(1-height))
+        .attr("height",gheight*height)
+        .attr("fill",fill);
+    
+}
+
+function drawBarChart() {
+    /* Terrible partial copy and paste for the new type of
+     * chart entry, a chart where you can drag the months
+     * of the year to measure your stress */
+    svg.selectAll("*").remove();
+
+    svg.append("rect")
+        .attr("width",width)
+        .attr("height",height)
+        .attr("fill","#fff0");
+
+    x = d3.scaleLinear()
+        .domain([0, 1])
+        .range([0, gwidth]);
+    
+    y = d3.scaleLinear()
+        .domain([0, 1])
+        .range([gheight, 0]);
+    
+    var names = ["March", "April", "May", "June", "July", "August", "Sept", "Oct", "Nov", "Dec", "Jan", "Feb"]
+    for (var i=0; i<numBarSections; i++) {
+        var fill = (i % 2 == 1) ? "#eee" : "#fff"
+        var tickLabel = ""
+        if (i == 1) {
+            tickLabel = "2020";
+        } else if (i == 11) {
+            tickLabel = "2021"
+        }
+        drawGraphSection(names[i], tickLabel, "#666", fill, i/numBarSections, 1/numBarSections, 0, 0, 14)
+    }
+    
+    for (var i=0; i<numBarSections; i++) {
+        drawBar("#f00", "#00005599", i/numBarSections, 1/numBarSections, curvals[i]);
+    }
+
+    drawGraphAxes("Time", [], "Stress", ["Low","High"]);
+
+}
+
 function redraw(){
     resize();
     draw();
@@ -586,7 +669,7 @@ svg.call(dragAndDraw);
 function dragstarted() {
     var valpos = d3.event.x>0 & d3.event.x<gwidth & d3.event.y>0 & d3.event.y<gheight;
           
-    if(drawing_mode === "on" && valpos){
+    if (drawing_mode === "on" && valpos) {
         startMillis = Date.now();
         xmin = d3.event.x;
         curvals = [];
@@ -600,10 +683,25 @@ function dragstarted() {
           .attr("stroke-linejoin","round")
           .attr("stroke-linecap","round")
           .attr("d", line);
+    } else if (drawing_mode === "bar" && valpos) {
+        // TODO
+        var halfBar = gwidth / (numBarSections * 2);
+        currentBar = Math.round((d3.event.x - halfBar) / gwidth * numBarSections);
+        console.log("Set currentBar to:", currentBar, d3.event.x)
     }
 }
 
 function dragging() {
+    if (drawing_mode === "bar") {
+        var scaled = 1.0 - (d3.event.y / gheight)
+        if (scaled > 1.0) {
+            scaled = 1.0;
+        } else if (scaled < 0.0) {
+            scaled = 0.0;
+        }
+        curvals[currentBar] = scaled
+        draw();
+    }
     if (drawing_mode !== "on") {
         return;
     }

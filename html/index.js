@@ -1,4 +1,4 @@
-const VERSION = "1.0.1";
+const VERSION = "1.0.2";
 const DEBUG = false;
 
 var mode = "PPT";
@@ -11,8 +11,9 @@ var curvals = [],
     autodrawTimeout = undefined,
     startMillis = 0,
     currentMillis = 0;
-var numBarSections = 12,
-    currentBar = 0;
+var numBars = 14,
+    currentBar = 0,
+    barTouched = [];
 var x,
     y,
     margin,
@@ -86,6 +87,10 @@ function rotateMode() {
         mode = "PandemicStress";
         break;
       case "PandemicStress":
+        mode = "StressLastMonth";
+        // Clicking on the window sometimes selects the hidden form stuff
+        break;
+      case "StressLastMonth":
         mode = "End";
         break;
       default:
@@ -100,6 +105,7 @@ function skipGraph() {
       case "Intro2":
       case "PracticeEnd":
       case "PreEMA3":
+      case "StressLastMonth":
         return true;
       default:
         return false;
@@ -178,6 +184,12 @@ function done() {
         return;
     }
 
+    if (mode === "StressLastMonth") {
+        var stress = $('input[name="stress"]:checked').val();
+        data.StressLastMonth = [{'x':stress, 'y':0}];
+        postData();
+    }
+
     if (mode === "PPT") {
         // TODO
         // mode = "Intro1";
@@ -207,9 +219,13 @@ function done() {
                 data.TSST = curvals;
                 break;
             case "PandemicStress":
-                // TODO: where the data is
-                data.PandemicStress = curvals;
-                postData();
+                // The backend assumes we're storing stuff as x,y 
+                // coordinates, so we shoehorn that in here.
+                var points = []
+                for (i = 0; i < numBars; i++) {
+                    points[i] = {'x':i, 'y':curvals[i]}
+                }
+                data.PandemicStress = points;
                 break;
         }
         rotateMode();
@@ -229,7 +245,8 @@ function done() {
         curvals = [];
     } else if (isBarChart()) {
         drawing_mode = "bar";
-        curvals = [0.5, 1.0, 0.75, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.0, 0.1, 0.9];
+        curvals = Array(numBars).fill(0.0);
+        barTouched = Array(numBars).fill(false);
     } else {
         drawing_mode = "on";
         curvals = [];
@@ -260,6 +277,9 @@ function draw(){
             button_done.hide();
             ppt.show();
             break;
+          case "StressLastMonth":
+            $('input[type="radio"]').attr('checked', false);
+            break;
           case "End":
             if (DEBUG) {
               // Allow multiple posts during testing
@@ -275,9 +295,13 @@ function draw(){
         drawTitle(mode);
     } else {
         text.hide();
-        if (drawing_mode === "automatic") {
+        if (drawing_mode === "automatic" || (
+            drawing_mode === "bar" && checkAllBars()
+        )) {
+            console.log("Showing done");
             button_done.show();
         } else {
+            console.log("Showing hide");
             button_done.hide();
         }
         if (drawing_mode === "on" || drawing_mode === "automatic" || drawing_mode === "bar") {
@@ -518,7 +542,6 @@ function autodraw() {
     if (autovals.length == 0) {
         return;
     }
-    //console.log(`autodraw: ${autovals.length} ${curvals.length}`)
     var point = autovals.shift()
     curvals.push(point);
     var timeout = currentMillis - point.time;
@@ -609,8 +632,8 @@ function drawBarChart() {
         .domain([0, 1])
         .range([gheight, 0]);
     
-    var names = ["March", "April", "May", "June", "July", "August", "Sept", "Oct", "Nov", "Dec", "Jan", "Feb"]
-    for (var i=0; i<numBarSections; i++) {
+    var names = ["Jan", "Feb", "March", "April", "May", "June", "July", "August", "Sept", "Oct", "Nov", "Dec", "Jan", "Feb"]
+    for (var i=0; i<numBars; i++) {
         var fill = (i % 2 == 1) ? "#eee" : "#fff"
         var tickLabel = ""
         if (i == 1) {
@@ -618,11 +641,11 @@ function drawBarChart() {
         } else if (i == 11) {
             tickLabel = "2021"
         }
-        drawGraphSection(names[i], tickLabel, "#666", fill, i/numBarSections, 1/numBarSections, 0, 0, 14)
+        drawGraphSection(names[i], tickLabel, "#666", fill, i/numBars, 1/numBars, 0, 0, 14)
     }
     
-    for (var i=0; i<numBarSections; i++) {
-        drawBar("#f00", "#00005599", i/numBarSections, 1/numBarSections, curvals[i]);
+    for (var i=0; i<numBars; i++) {
+        drawBar("#f00", "#00005599", i/numBars, 1/numBars, curvals[i]);
     }
 
     drawGraphAxes("Time", [], "Stress", ["Low","High"]);
@@ -664,12 +687,47 @@ var dragAndDraw = d3.drag()
     .on("drag", dragging)
     .on("end", dragstopped);
 
+function isInsideGraph() {
+    return d3.event.x>0 & d3.event.x<gwidth & d3.event.y>0 & d3.event.y<gheight;
+}
+
+function updateBarPosition() {
+    var scaled = 1.0 - (d3.event.y / gheight)
+    if (scaled > 1.0) {
+        scaled = 1.0;
+    } else if (scaled < 0.0) {
+        scaled = 0.0;
+    }
+    curvals[currentBar] = scaled
+    draw();
+}
+
+function checkAllBars() {
+    // See if the user has entered data for each bar
+    for (i = 0; i < numBars; i++) {
+        if (!barTouched[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function updateCurrentBar() {
+    var halfBar = gwidth / (numBars * 2);
+    currentBar = Math.round((d3.event.x - halfBar) / gwidth * numBars);
+    barTouched[currentBar] = true;
+    if (DEBUG) {
+        console.log("Set currentBar to:", currentBar, d3.event.x);
+    }
+}
+
 svg.call(dragAndDraw);
 
 function dragstarted() {
-    var valpos = d3.event.x>0 & d3.event.x<gwidth & d3.event.y>0 & d3.event.y<gheight;
-          
-    if (drawing_mode === "on" && valpos) {
+    if (!isInsideGraph()) {
+        return
+    }
+    if (drawing_mode === "on") {
         startMillis = Date.now();
         xmin = d3.event.x;
         curvals = [];
@@ -683,24 +741,15 @@ function dragstarted() {
           .attr("stroke-linejoin","round")
           .attr("stroke-linecap","round")
           .attr("d", line);
-    } else if (drawing_mode === "bar" && valpos) {
-        // TODO
-        var halfBar = gwidth / (numBarSections * 2);
-        currentBar = Math.round((d3.event.x - halfBar) / gwidth * numBarSections);
-        console.log("Set currentBar to:", currentBar, d3.event.x)
+    } else if (drawing_mode === "bar") {
+        updateCurrentBar()
+        updateBarPosition()
     }
 }
 
 function dragging() {
     if (drawing_mode === "bar") {
-        var scaled = 1.0 - (d3.event.y / gheight)
-        if (scaled > 1.0) {
-            scaled = 1.0;
-        } else if (scaled < 0.0) {
-            scaled = 0.0;
-        }
-        curvals[currentBar] = scaled
-        draw();
+        updateBarPosition()
     }
     if (drawing_mode !== "on") {
         return;

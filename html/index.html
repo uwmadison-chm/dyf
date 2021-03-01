@@ -80,6 +80,17 @@ button:hover {
   padding-left: 5em;
   padding-right: 5em;
 }
+
+/* so that the final 1-10 stress form is clickable */
+#StressLastMonth {
+  z-index: 2;
+}
+table {
+  border: 0;
+  width: 70%;
+  margin: auto;
+  table-layout: fixed;
+}
 </style>
 <head>
 <body>
@@ -208,13 +219,48 @@ Participant ID: <input id="ppt_input" size="30"/>
 
 
 <div class="text slide" id="PandemicStress">
-  <p>Now we're going to do one more graph. This time, it's about how 
-  stressed you were over the course of the pandemic, and you'll adjust the 
-  bars for each month by touching them.</p>
+  <p>Now we are going to do one more graph, but it is going to be a <em>little</em> different.</p>
+
+  <p>This graph asks “How stressed were you over time from January 2020 through February 2021?”</p> 
+
+  <p>Adjust the bars for each month by sliding them up and down to your stress level for that month.</p>
 </div>
 
 <div class="text title" id="PandemicStressGraph">
-  EXPLANATION HERE
+  How stressed were you over time from January 2020 through February 2021?
+</div>
+
+<div class="text slide" id="StressLastMonth">
+  <p>On a scale from 1-10, how stressed have you been the past month?</p>
+
+  <form>
+    <table>
+      <tr>
+        <td>1</td>
+        <td>2</td>
+        <td>3</td>
+        <td>4</td>
+        <td>5</td>
+        <td>6</td>
+        <td>7</td>
+        <td>8</td>
+        <td>9</td>
+        <td>10</td>
+      </tr>
+      <tr>
+        <td><input type="radio" name="stress" value="1"></td>
+        <td><input type="radio" name="stress" value="2"></td>
+        <td><input type="radio" name="stress" value="3"></td>
+        <td><input type="radio" name="stress" value="4"></td>
+        <td><input type="radio" name="stress" value="5"></td>
+        <td><input type="radio" name="stress" value="6"></td>
+        <td><input type="radio" name="stress" value="7"></td>
+        <td><input type="radio" name="stress" value="8"></td>
+        <td><input type="radio" name="stress" value="9"></td>
+        <td><input type="radio" name="stress" value="10"></td>
+      </tr>
+    </table>
+  </form>
 </div>
 
 
@@ -233,3 +279,4 @@ Participant ID: <input id="ppt_input" size="30"/>
 
 </body>
 </html>
+

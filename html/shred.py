@@ -55,6 +55,8 @@ def main():
             parse_chunk('EMAWin')
             parse_chunk('EMALose')
             parse_chunk('TSST')
+            parse_chunk('PandemicStress')
+            parse_chunk('StressLastMonth')
 
 
 if __name__ == '__main__':

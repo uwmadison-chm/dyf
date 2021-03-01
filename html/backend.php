@@ -22,7 +22,9 @@ $db->exec(
     PositiveFace TEXT,
     EMAWin TEXT,
     EMALose TEXT,
-    TSST TEXT
+    TSST TEXT,
+    PandemicStress TEXT,
+    StressLastMonth TEXT
   )'
 );
 
@@ -49,6 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ':EMAWin' => isset($data['EMAWin']) ? json_encode($data['EMAWin']) : 'none',
         ':EMALose' => isset($data['EMALose']) ? json_encode($data['EMALose']) : 'none',
         ':TSST' => isset($data['TSST']) ? json_encode($data['TSST']) : 'none',
+        ':PandemicStress' => isset($data['PandemicStress']) ? json_encode($data['PandemicStress']) : 'none',
+        ':StressLastMonth' => isset($data['StressLastMonth']) ? json_encode($data['StressLastMonth']) : 'none',
       ));
       echo "{}\n";
       http_response_code(200);

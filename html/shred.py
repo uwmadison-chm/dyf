@@ -45,7 +45,7 @@ def main():
                 try:
                     chunk = json.loads(content)
                     for point in chunk:
-                        out.writerow([pid, version, timestamp, name, point['x'], point['y'], point['time']])
+                        out.writerow([pid, version, timestamp, name, point['x'], point['y'], point.get('time', None)])
                 except:
                     print(f'Content for {name} is {content} for {pid}, could not parse')
                     sys.exit(1)

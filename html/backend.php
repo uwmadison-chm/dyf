@@ -36,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   if (is_array($data)) {
     try {
       $insert =
-        'INSERT INTO dyf (pid, session, version, timestamp, metadata, NegativeFace, PositiveFace, EMAWin, EMALose, TSST)
-        VALUES (:pid, :session, :version, :timestamp, :metadata, :NegativeFace, :PositiveFace, :EMAWin, :EMALose, :TSST)';
+        'INSERT INTO dyf (pid, session, version, timestamp, metadata, NegativeFace, PositiveFace, EMAWin, EMALose, TSST, PandemicStress, StressLastMonth)
+        VALUES (:pid, :session, :version, :timestamp, :metadata, :NegativeFace, :PositiveFace, :EMAWin, :EMALose, :TSST, :PandemicStress, :StressLastMonth)';
       $stmt = $db->prepare($insert);
 
       $stmt->execute(array(

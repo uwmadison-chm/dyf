@@ -1,3 +1,6 @@
 #!/bin/sh
 
-scp html/* guero:pub_html/drawyourfeels/
+VERSION="v1.0.2"
+
+scp html/* celliwig:/var/www/www_root/test/dyf-$VERSION
+scp README.md celliwig:/var/www/www_root/test/dyf-$VERSION

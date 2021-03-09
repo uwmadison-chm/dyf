@@ -191,9 +191,7 @@ function done() {
     }
 
     if (mode === "PPT") {
-        // TODO
-        // mode = "Intro1";
-        mode = "PandemicStress";
+        mode = "Intro1";
         data.ppt = $("#ppt_input").val()
         draw();
         return;

@@ -66,21 +66,6 @@ function rotateMode() {
         mode = "PositiveFace";
         break;
       case "PositiveFace":
-        mode = "PreEMA1";
-        break;
-      case "PreEMA1":
-        mode = "PreEMA2";
-        break;
-      case "PreEMA2":
-        mode = "PreEMA3";
-        break;
-      case "PreEMA3":
-        mode = "EMAWin";
-        break;
-      case "EMAWin":
-        mode = "EMALose";
-        break;
-      case "EMALose":
         mode = "TSST";
         break;
       case "TSST":
@@ -207,12 +192,6 @@ function done() {
             case "PositiveFace":
                 data.PositiveFace = curvals;
                 break;
-            case "EMAWin":
-                data.EMAWin = curvals;
-                break;
-            case "EMALose":
-                data.EMALose = curvals;
-                break;
             case "TSST":
                 data.TSST = curvals;
                 break;
@@ -327,11 +306,6 @@ function xtickArguments(){
       case "NegativeFace":
       case "PositiveFace":
         return [12, "s"];
-      case "PreEMA1":
-      case "PreEMA2":
-      case "EMAWin":
-      case "EMALose":
-        return [90, "m"];
       default:
         return [];
     }
@@ -347,12 +321,6 @@ function xtickValues(){
       case "NegativeFace":
       case "PositiveFace":
         return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-      case "PreEMA1":
-      case "EMAWin":
-        return ["Win $10", 10, 20, 30, 40, 50, 60, 70, 80, 90];
-      case "PreEMA2":
-      case "EMALose":
-        return ["Lose $5", 10, 20, 30, 40, 50, 60, 70, 80, 90];
       default:
         return [];
     }
@@ -368,11 +336,6 @@ function xScaleWidthForCurrentMode() {
       case "NegativeFace":
       case "PositiveFace":
         return 12;
-      case "PreEMA1":
-      case "PreEMA2":
-      case "EMAWin":
-      case "EMALose":
-        return 90;
       default:
         return 1;
     }
@@ -511,19 +474,6 @@ function drawSectionsForMode(){
             ]);
             break;
 
-      case "PreEMA1":
-      case "EMAWin":
-        drawGraphSections([
-              ["Being texted surveys after winning $10", "", "#666", "#fff", 0.0, 1.0],
-            ]);
-            break;
-
-      case "PreEMA2":
-      case "EMALose":
-        drawGraphSections([
-              ["Being texted surveys after losing $5", "", "#666", "#fff", 0.0, 1.0],
-            ]);
-            break;
     }
 }
 

@@ -45,11 +45,8 @@ def main():
                     return
                 try:
                     chunk = json.loads(content)
-                    if len(chunk) <= 1:
-                        print(f'No real content in {name} for {pid}')
-                    else:
-                        for point in chunk:
-                            out.writerow([pid, version, timestamp, name, point['x'], point['y'], point.get('time', None)])
+                    for point in chunk:
+                        out.writerow([pid, version, timestamp, name, point.get('x', 0), point.get('y', 0), point.get('time', None)])
                 except:
                     print(f'Content for {name} is {content} for {pid}, could not parse')
                     sys.exit(1)

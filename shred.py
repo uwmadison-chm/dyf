@@ -18,8 +18,9 @@ def connect(db):
 
 
 def main():
-    dirname = os.path.dirname(os.path.realpath(__file__))
-    dbfile = os.path.join(dirname, 'data.sqlite')
+    dbfile = sys.argv[1]
+    outdir = sys.argv[2]
+
     db = connect(dbfile)
     db.row_factory = sqlite3.Row
 
@@ -32,7 +33,7 @@ def main():
         if pid == '' or pid == None:
             continue
 
-        outpath = os.path.join(dirname, 'data', f'{pid}.csv')
+        outpath = os.path.join(outdir, f'{pid}.csv')
         with open(outpath, 'w') as csvfile:
             out = csv.writer(csvfile)
             out.writerow(['PID', 'Version', 'Timestamp', 'Kind', 'X', 'Y', 'MS'])
@@ -44,8 +45,11 @@ def main():
                     return
                 try:
                     chunk = json.loads(content)
-                    for point in chunk:
-                        out.writerow([pid, version, timestamp, name, point['x'], point['y'], point.get('time', None)])
+                    if len(chunk) <= 1:
+                        print(f'No real content in {name} for {pid}')
+                    else:
+                        for point in chunk:
+                            out.writerow([pid, version, timestamp, name, point['x'], point['y'], point.get('time', None)])
                 except:
                     print(f'Content for {name} is {content} for {pid}, could not parse')
                     sys.exit(1)
